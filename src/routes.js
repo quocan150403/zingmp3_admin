@@ -13,7 +13,9 @@ import { MovieAddPage, MovieListPage } from './pages/MoviePage';
 import { AgeGroupAddPage, AgeGroupListPage } from './pages/AgeGroupPage';
 import { ArtistAddPage, ArtistListPage } from './pages/ArtistPage';
 import { UserAddPage, UserListPage } from './pages/UserPage';
-
+import { SubscriptionAddPage, SubscriptionListPage } from './pages/SubscriptionPage';
+import { BillListPage, BillAddPage } from './pages/BillPage';
+import { CountryListPage, CountryAddPage } from './pages/CountryPage';
 // ----------------------------------------------------------------------
 
 export default function Router() {
@@ -24,7 +26,6 @@ export default function Router() {
       children: [
         { element: <Navigate to="/dashboard/app" />, index: true },
         { path: 'app', element: <DashboardAppPage /> },
-        // { path: 'user', element: <UserPage /> },
         { path: 'user', element: <UserListPage /> },
         { path: 'user/add', element: <UserAddPage /> },
         { path: 'genre', element: <GenreListPage /> },
@@ -35,6 +36,12 @@ export default function Router() {
         { path: 'age-group/add', element: <AgeGroupAddPage /> },
         { path: 'artist', element: <ArtistListPage /> },
         { path: 'artist/add', element: <ArtistAddPage /> },
+        { path: 'subscription', element: <SubscriptionListPage /> },
+        { path: 'subscription/add', element: <SubscriptionAddPage /> },
+        { path: 'bill', element: <BillListPage /> },
+        { path: 'bill/add', element: <BillAddPage /> },
+        { path: 'country', element: <CountryListPage /> },
+        { path: 'country/add', element: <CountryAddPage /> },
         { path: 'products', element: <ProductsPage /> },
         { path: 'blog', element: <BlogPage /> },
       ],

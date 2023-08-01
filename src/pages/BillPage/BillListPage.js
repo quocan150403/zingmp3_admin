@@ -21,21 +21,27 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
+  Avatar,
 } from '@mui/material';
 // components
 import Label from '../../components/label';
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
+
+import { fDate } from '../../utils/formatTime';
 // mock
-import AGELIST from '../../_mock/age';
+import BILLLIST from '../../_mock/bill';
 import { TableListHead, TableListToolbar } from '../../components/table';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Tên nhóm tuổi', alignRight: false, width: 200 },
-  { id: 'description', label: 'Mô tả', alignRight: false },
-  { id: 'minimum', label: 'Tuổi tối thiểu', alignRight: false },
+  { id: 'name', label: 'Tên', alignRight: false },
+  { id: 'type', label: 'Loại', alignRight: false },
+  { id: 'total', label: 'Tổng tiền', alignRight: false },
+  { id: 'start', label: 'Ngày bắt đầu', alignRight: false },
+  { id: 'end', label: 'Ngày kết thúc', alignRight: false },
+  { id: 'method', label: 'Phương thức thanh toán', alignRight: false },
   { id: 'status', label: 'Trạng thái', alignRight: false },
   { id: '' },
 ];
@@ -71,7 +77,7 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function AGEListPage() {
+export default function BILLListPage() {
   const [open, setOpen] = useState(null);
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('asc');
@@ -96,7 +102,7 @@ export default function AGEListPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = AGELIST.map((n) => n.name);
+      const newSelecteds = BILLLIST.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -132,26 +138,26 @@ export default function AGEListPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - AGELIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - BILLLIST.length) : 0;
 
-  const filteredList = applySortFilter(AGELIST, getComparator(order, orderBy), filterName);
+  const filteredList = applySortFilter(BILLLIST, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredList.length && !!filterName;
 
   return (
     <>
       <Helmet>
-        <title> Danh Sách Nhóm Tuổi | Beecine </title>
+        <title> Danh Sách Hóa Đơn | BeeCine </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Danh sách nhóm tuổi
+            Danh sách hóa đơn
           </Typography>
-          <Link to="/dashboard/age-group/add">
+          <Link to="/dashboard/user/add">
             <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-              Thêm nhóm tuổi
+              Thêm hóa đơn
             </Button>
           </Link>
         </Stack>
@@ -161,7 +167,7 @@ export default function AGEListPage() {
             numSelected={selected.length}
             filterName={filterName}
             onFilterName={handleFilterByName}
-            placeholder="Tìm kiếm nhóm tuổi..."
+            placeholder="Tìm kiếm hóa đơn..."
           />
 
           <Scrollbar>
@@ -171,14 +177,14 @@ export default function AGEListPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={AGELIST.length}
+                  rowCount={BILLLIST.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, description, minimum, status } = row;
+                    const { id, name, type, avatarUrl, start, end, total, method, status } = row;
                     const selectedList = selected.indexOf(name) !== -1;
 
                     return (
@@ -187,10 +193,24 @@ export default function AGEListPage() {
                           <Checkbox checked={selectedList} onChange={(event) => handleClick(event, name)} />
                         </TableCell>
 
-                        <TableCell align="left">{name}</TableCell>
+                        <TableCell component="th" scope="row" padding="none">
+                          <Stack direction="row" alignItems="center" spacing={2}>
+                            <Avatar alt={name} src={avatarUrl} />
+                            <Typography variant="subtitle2" noWrap>
+                              {name}
+                            </Typography>
+                          </Stack>
+                        </TableCell>
 
-                        <TableCell align="left">{description}</TableCell>
-                        <TableCell align="left">{minimum}</TableCell>
+                        <TableCell align="left">
+                          <Label color={(type === 'premium' && 'warning') || 'info'}>{sentenceCase(type)}</Label>
+                        </TableCell>
+
+                        <TableCell align="left">{total}</TableCell>
+
+                        <TableCell align="left">{fDate(start)}</TableCell>
+                        <TableCell align="left">{fDate(end)}</TableCell>
+                        <TableCell align="left">{method}</TableCell>
 
                         <TableCell align="left">
                           <Label color={(status === 'inactive' && 'error') || 'success'}>{sentenceCase(status)}</Label>
@@ -221,7 +241,7 @@ export default function AGEListPage() {
                           }}
                         >
                           <Typography variant="h6" paragraph>
-                            Không tìm thấy kết quả nào
+                            Không tìm thấy thể loại
                           </Typography>
 
                           <Typography variant="body2">
@@ -241,7 +261,7 @@ export default function AGEListPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={AGELIST.length}
+            count={BILLLIST.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

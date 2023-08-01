@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { useState } from 'react';
 // @mui
-import { Card, Typography, TextField, FormControlLabel, Switch, Container, Stack, Button } from '@mui/material';
+import { Card, Typography, TextField, FormControlLabel, Switch, Container, Stack, Button, Grid } from '@mui/material';
 
 // ----------------------------------------------------------------------
 export default function GenreAddPage() {
@@ -13,51 +13,60 @@ export default function GenreAddPage() {
   return (
     <>
       <Helmet>
-        <title> Thêm Thể loại | BeeCine </title>
+        <title> Thêm Nhóm tuổi | BeeCine </title>
       </Helmet>
 
       <Container>
         <Typography variant="h4" mb={5}>
-          Thêm Thể loại
+          Thêm Nhóm tuổi
         </Typography>
 
-        <Card sx={{ p: 3 }}>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3} mb={3}>
-            <Stack spacing={2} width="100%">
-              <Typography variant="subtitle1">Tên thể loại</Typography>
-              <TextField
-                fullWidth
-                label="Tên thể loại"
-                variant="outlined"
-                name="name"
-                // value={name}
-                // onChange={handleChange}
-              />
-            </Stack>
-            <Stack spacing={2} width="100%">
-              <Typography variant="subtitle1">Thứ tự</Typography>
-              <TextField
-                fullWidth
-                label="Thứ tự"
-                variant="outlined"
-                name="order"
-                type="number"
-                // value={name}
-                // onChange={handleChange}
-              />
-            </Stack>
-          </Stack>
-          <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
-            <FormControlLabel
-              control={<Switch checked={checked} onChange={handleChange} name="checked" color="primary" />}
-              label="Trạng thái"
-            />
+        <Grid container>
+          <Grid item xs={12} md={6}>
+            <Card sx={{ p: 3 }}>
+              <Stack spacing={2} mb={3} width="100%">
+                <TextField
+                  fullWidth
+                  label="Tên nhóm tuổi"
+                  variant="outlined"
+                  name="name"
+                  // value={name}
+                  // onChange={handleChange}
+                />
+                <TextField
+                  fullWidth
+                  label="Tuổi tối thiểu"
+                  variant="outlined"
+                  name="order"
+                  type="number"
+                  // value={name}
+                  // onChange={handleChange}
+                />
+                <TextField
+                  fullWidth
+                  label="Mô tả"
+                  variant="outlined"
+                  name="order"
+                  type="number"
+                  multiline
+                  rows={4}
+                  // value={name}
+                  // onChange={handleChange}
+                />
+              </Stack>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
+                <FormControlLabel
+                  control={<Switch checked={checked} onChange={handleChange} name="checked" color="primary" />}
+                  label="Trạng thái"
+                />
 
-            <Button size="large" variant="contained" color="inherit">
-              Thêm thể loại mới
-            </Button>
-          </Stack>
-        </Card>
+                <Button size="large" variant="contained" color="inherit">
+                  Thêm nhóm tuổi
+                </Button>
+              </Stack>
+            </Card>
+          </Grid>
+        </Grid>
       </Container>
     </>
   );

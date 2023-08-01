@@ -27,15 +27,17 @@ import Label from '../../components/label';
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
 // mock
-import AGELIST from '../../_mock/age';
+import SUBSCRIPTIONLIST from '../../_mock/subscription';
 import { TableListHead, TableListToolbar } from '../../components/table';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Tên nhóm tuổi', alignRight: false, width: 200 },
-  { id: 'description', label: 'Mô tả', alignRight: false },
-  { id: 'minimum', label: 'Tuổi tối thiểu', alignRight: false },
+  { id: 'price', label: 'Giá', alignRight: false },
+  { id: 'duration', label: 'Thời hạn', alignRight: false },
+  { id: 'benefits', label: 'Quyền lợi', textAlign: 'center' },
+  { id: 'isFeatured', label: 'Nổi bật', alignRight: false },
   { id: 'status', label: 'Trạng thái', alignRight: false },
   { id: '' },
 ];
@@ -71,7 +73,7 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function AGEListPage() {
+export default function SUBSCRIPTIONListPage() {
   const [open, setOpen] = useState(null);
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('asc');
@@ -96,7 +98,7 @@ export default function AGEListPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = AGELIST.map((n) => n.name);
+      const newSelecteds = SUBSCRIPTIONLIST.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -132,26 +134,26 @@ export default function AGEListPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - AGELIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - SUBSCRIPTIONLIST.length) : 0;
 
-  const filteredList = applySortFilter(AGELIST, getComparator(order, orderBy), filterName);
+  const filteredList = applySortFilter(SUBSCRIPTIONLIST, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredList.length && !!filterName;
 
   return (
     <>
       <Helmet>
-        <title> Danh Sách Nhóm Tuổi | Beecine </title>
+        <title> Danh Sách Gói | Beecine </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Danh sách nhóm tuổi
+            Danh sách gói
           </Typography>
-          <Link to="/dashboard/age-group/add">
+          <Link to="/dashboard/subscription/add">
             <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-              Thêm nhóm tuổi
+              Thêm gói
             </Button>
           </Link>
         </Stack>
@@ -161,7 +163,7 @@ export default function AGEListPage() {
             numSelected={selected.length}
             filterName={filterName}
             onFilterName={handleFilterByName}
-            placeholder="Tìm kiếm nhóm tuổi..."
+            placeholder="Tìm kiếm gói..."
           />
 
           <Scrollbar>
@@ -171,14 +173,14 @@ export default function AGEListPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={AGELIST.length}
+                  rowCount={SUBSCRIPTIONLIST.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, description, minimum, status } = row;
+                    const { id, name, price, duration, benefits, isFeatured, status } = row;
                     const selectedList = selected.indexOf(name) !== -1;
 
                     return (
@@ -189,8 +191,15 @@ export default function AGEListPage() {
 
                         <TableCell align="left">{name}</TableCell>
 
-                        <TableCell align="left">{description}</TableCell>
-                        <TableCell align="left">{minimum}</TableCell>
+                        <TableCell align="left">{price}</TableCell>
+                        <TableCell align="left">{duration}</TableCell>
+                        <TableCell align="left">{benefits}</TableCell>
+
+                        <TableCell align="left">
+                          <Label color={(isFeatured === 'yes' && 'secondary') || 'warning'}>
+                            {sentenceCase(status)}
+                          </Label>
+                        </TableCell>
 
                         <TableCell align="left">
                           <Label color={(status === 'inactive' && 'error') || 'success'}>{sentenceCase(status)}</Label>
@@ -241,7 +250,7 @@ export default function AGEListPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={AGELIST.length}
+            count={SUBSCRIPTIONLIST.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
