@@ -10,7 +10,7 @@ const countries = [...Array(24)].map((_, index) => ({
   image: faker.image.imageUrl(),
   language: faker.address.countryCode(),
   currency: faker.finance.currencyCode(),
-  telephone: faker.phone.phoneNumber(),
+  telephone: faker.phone.number(),
   status: sample(['active', 'inactive']),
 }));
 
