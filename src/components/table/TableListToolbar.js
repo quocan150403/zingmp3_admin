@@ -39,7 +39,7 @@ TableListToolbar.propTypes = {
   onFilterName: PropTypes.func,
 };
 
-export default function TableListToolbar({ numSelected, filterName, onFilterName, placeholder }) {
+export default function TableListToolbar({ numSelected, filterName, onFilterName, placeholder, onDeleteAll }) {
   return (
     <StyledRoot
       sx={{
@@ -67,7 +67,7 @@ export default function TableListToolbar({ numSelected, filterName, onFilterName
       )}
 
       {numSelected > 0 ? (
-        <Tooltip title="Delete">
+        <Tooltip onClick={onDeleteAll} title="Delete">
           <IconButton>
             <Iconify icon="eva:trash-2-fill" />
           </IconButton>

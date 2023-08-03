@@ -4,7 +4,6 @@ import { NavLink as RouterLink } from 'react-router-dom';
 import { Box, List, ListItemText } from '@mui/material';
 //
 import { StyledNavItem, StyledNavItemIcon } from './styles';
-
 // ----------------------------------------------------------------------
 
 NavSection.propTypes = {
@@ -45,7 +44,6 @@ function NavItem({ item }) {
       }}
     >
       <StyledNavItemIcon>{icon && icon}</StyledNavItemIcon>
-
       <ListItemText disableTypography primary={title} />
 
       {info && info}

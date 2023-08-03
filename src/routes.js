@@ -8,7 +8,7 @@ import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
 import ProductsPage from './pages/ProductsPage';
 import DashboardAppPage from './pages/DashboardAppPage';
-import { GenreAddPage, GenreListPage } from './pages/GenrePage';
+import { GenreAddPage, GenreListPage, GenreEditPage } from './pages/GenrePage';
 import { MovieAddPage, MovieListPage } from './pages/MoviePage';
 import { AgeGroupAddPage, AgeGroupListPage } from './pages/AgeGroupPage';
 import { ArtistAddPage, ArtistListPage } from './pages/ArtistPage';
@@ -30,6 +30,7 @@ export default function Router() {
         { path: 'user/add', element: <UserAddPage /> },
         { path: 'genre', element: <GenreListPage /> },
         { path: 'genre/add', element: <GenreAddPage /> },
+        { path: 'genre/edit/:id', element: <GenreEditPage /> },
         { path: 'movie', element: <MovieListPage /> },
         { path: 'movie/add', element: <MovieAddPage /> },
         { path: 'age-group', element: <AgeGroupListPage /> },

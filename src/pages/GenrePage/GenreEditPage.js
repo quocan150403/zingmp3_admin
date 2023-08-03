@@ -1,5 +1,6 @@
 import { Helmet } from 'react-helmet-async';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 // @mui
 import { Card, Typography, TextField, FormControlLabel, Switch, Container, Stack, Button, Grid } from '@mui/material';
 // toast
@@ -10,10 +11,28 @@ import 'react-toastify/dist/ReactToastify.css';
 import { genreApi } from '../../api';
 
 // ----------------------------------------------------------------------
-export default function GenreAddPage() {
+export default function GenreEditPage() {
+  const navigate = useNavigate();
+  const { id } = useParams();
   const [status, setStatus] = useState(true);
   const [name, setName] = useState('');
   const [isChildren, setIsChildren] = useState(false);
+
+  useEffect(() => {
+    const fetchGenre = async () => {
+      try {
+        const res = await genreApi.getById(id);
+        console.log(res);
+        const { name, isChildren, status } = res;
+        setName(name);
+        setIsChildren(isChildren);
+        setStatus(status === 'active');
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchGenre();
+  }, [id]);
 
   const resetForm = () => {
     setName('');
@@ -27,28 +46,35 @@ export default function GenreAddPage() {
       isChildren,
       status: status ? 'active' : 'inactive',
     };
-    try {
-      await toast.promise(genreApi.add(data), {
-        pending: 'Thêm thể loại...',
-        success: 'Thêm thể loại thành công!',
-        error: 'Thêm thể loại thất bại!',
-      });
+    const res = await toast.promise(
+      genreApi.edit(id, data),
+      {
+        pending: 'Đang sửa thể loại...',
+        success: 'Thành công! Chuyển hướng trong giây lát...',
+        error: 'Sửa thể loại thất bại!',
+      },
+      {
+        onClose: () => {
+          navigate('/dashboard/genre');
+        },
+        autoClose: 2000,
+      }
+    );
+    if (res?.status === 200) {
       resetForm();
-    } catch (error) {
-      console.log(error);
     }
   };
 
   return (
     <>
       <Helmet>
-        <title> Thêm Thể loại | BeeCine </title>
+        <title> Sửa Thể loại | BeeCine </title>
       </Helmet>
 
       <Container>
         <ToastContainer />
         <Typography variant="h4" mb={5}>
-          Thêm Thể loại
+          Sửa Thể loại
         </Typography>
 
         <Grid container>
@@ -64,7 +90,6 @@ export default function GenreAddPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                   />
-
                   <FormControlLabel
                     control={
                       <Switch checked={isChildren} onChange={(e) => setIsChildren(e.target.checked)} color="primary" />
@@ -80,7 +105,7 @@ export default function GenreAddPage() {
                 />
 
                 <Button onClick={handleSubmit} size="large" variant="contained" color="inherit">
-                  Thêm thể loại mới
+                  Lưu
                 </Button>
               </Stack>
             </Card>

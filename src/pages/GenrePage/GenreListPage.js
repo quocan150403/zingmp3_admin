@@ -1,8 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 // @mui
 import {
   Card,
@@ -22,19 +22,23 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 // components
 import Label from '../../components/label';
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
 // mock
-import GENRELIST from '../../_mock/genre';
-import { TableListHead, TableListToolbar } from '../../components/table';
+// import GENRELIST from '../../_mock/genre';
+import { genreApi } from '../../api';
+import { TableListHead, TableListToolbar, NotData, ModalTable } from '../../components/table';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Tên thể loại', alignRight: false },
-  { id: 'order', label: 'Thứ tự', alignRight: false },
+  { id: 'Trẻ em', label: 'Trẻ em', alignRight: false },
   { id: 'status', label: 'Trạng thái', alignRight: false },
   { id: '' },
 ];
@@ -71,6 +75,7 @@ function applySortFilter(array, comparator, query) {
 }
 
 export default function GenreListPage() {
+  const navigate = useNavigate();
   const [open, setOpen] = useState(null);
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('asc');
@@ -78,9 +83,52 @@ export default function GenreListPage() {
   const [orderBy, setOrderBy] = useState('name');
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const [openModalDelete, setOpenModalDelete] = useState(false);
+
+  const [genreList, setGenreList] = useState([]);
+  const [idRow, setIdRow] = useState('');
+
+  useEffect(() => {
+    const fetchGenreList = async () => {
+      try {
+        const response = await genreApi.getAll();
+        setGenreList(response);
+      } catch (error) {
+        console.log('Failed to fetch genre list: ', error);
+      }
+    };
+    fetchGenreList();
+  }, []);
+
+  const handleCloseModalDelete = () => {
+    setOpenModalDelete(false);
+  };
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
+    setIdRow(event.currentTarget.dataset.id);
+  };
+
+  const handleEditRow = () => {
+    navigate(`/dashboard/genre/edit/${idRow}`);
+  };
+
+  const handleDeleteAllRows = async () => {};
+
+  const handleDeleteRow = async () => {
+    setOpenModalDelete(false);
+    setOpen(null);
+    try {
+      await toast.promise(genreApi.delete(idRow), {
+        pending: 'Đang xóa thể loại...',
+        success: 'Xóa thể loại thành công!',
+        error: 'Xóa thể loại thất bại!',
+      });
+      setGenreList(genreList.filter((genre) => genre._id !== idRow));
+      console.log('Delete genre successfully: ', idRow);
+    } catch (error) {
+      console.log('Failed to delete genre: ', error);
+    }
   };
 
   const handleCloseMenu = () => {
@@ -95,7 +143,7 @@ export default function GenreListPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = GENRELIST.map((n) => n.name);
+      const newSelecteds = genreList.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -131,9 +179,9 @@ export default function GenreListPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - GENRELIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - genreList.length) : 0;
 
-  const filteredList = applySortFilter(GENRELIST, getComparator(order, orderBy), filterName);
+  const filteredList = applySortFilter(genreList, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredList.length && !!filterName;
 
@@ -161,6 +209,7 @@ export default function GenreListPage() {
             filterName={filterName}
             onFilterName={handleFilterByName}
             placeholder="Tìm kiếm thể loại"
+            onDeleteAll={handleDeleteAllRows}
           />
 
           <Scrollbar>
@@ -170,32 +219,36 @@ export default function GenreListPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={GENRELIST.length}
+                  rowCount={genreList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, order, status } = row;
+                    const { _id, name, isChildren, status } = row;
                     const selectedList = selected.indexOf(name) !== -1;
 
                     return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedList}>
+                      <TableRow hover key={_id} tabIndex={-1} role="checkbox" selected={selectedList}>
                         <TableCell padding="checkbox">
                           <Checkbox checked={selectedList} onChange={(event) => handleClick(event, name)} />
                         </TableCell>
 
                         <TableCell align="left">{name}</TableCell>
 
-                        <TableCell align="left">{order}</TableCell>
+                        <TableCell align="left">
+                          <Label color={(isChildren && 'info') || 'warning'}>
+                            {sentenceCase(isChildren ? 'active' : 'inactive')}
+                          </Label>
+                        </TableCell>
 
                         <TableCell align="left">
                           <Label color={(status === 'inactive' && 'error') || 'success'}>{sentenceCase(status)}</Label>
                         </TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <IconButton data-id={_id} size="large" color="inherit" onClick={handleOpenMenu}>
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -208,7 +261,7 @@ export default function GenreListPage() {
                     </TableRow>
                   )}
                 </TableBody>
-
+                {genreList.length <= 0 && <NotData nameTable="thể loại" sx={{ py: 3 }} />}
                 {isNotFound && (
                   <TableBody>
                     <TableRow>
@@ -239,7 +292,7 @@ export default function GenreListPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={GENRELIST.length}
+            count={genreList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -247,6 +300,8 @@ export default function GenreListPage() {
           />
         </Card>
       </Container>
+
+      <ToastContainer />
 
       <Popover
         open={Boolean(open)}
@@ -266,16 +321,24 @@ export default function GenreListPage() {
           },
         }}
       >
-        <MenuItem>
+        <MenuItem onClick={handleEditRow}>
           <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
           Sửa
         </MenuItem>
 
-        <MenuItem sx={{ color: 'error.main' }}>
+        <MenuItem onClick={() => setOpenModalDelete(true)} sx={{ color: 'error.main' }}>
           <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
           Xóa
         </MenuItem>
       </Popover>
+
+      <ModalTable
+        open={openModalDelete}
+        onClose={handleCloseModalDelete}
+        onConfirm={handleDeleteRow}
+        title="Xóa thể loại"
+        content="Bạn có chắc chắn muốn xóa thể loại này?"
+      />
     </>
   );
 }
