@@ -1,6 +1,6 @@
 import axiosClient from './axiosClient';
 
-const url = 'genres';
+const url = 'countries';
 
 const genreApi = {
   getQuery: (params) => axiosClient.get(url, { params }),

@@ -1,1 +1,11 @@
+export { default as ageGroupApi } from './ageGroupApi';
+export { default as artistApi } from './artistApi';
+export { default as bannerApi } from './bannerApi';
+export { default as billApi } from './billApi';
+export { default as commentApi } from './commentApi';
+export { default as countryApi } from './countryApi';
+export { default as episodeApi } from './episodeApi';
 export { default as genreApi } from './genreApi';
+export { default as movieApi } from './movieApi';
+export { default as profileApi } from './profileApi';
+export { default as userApi } from './userApi';

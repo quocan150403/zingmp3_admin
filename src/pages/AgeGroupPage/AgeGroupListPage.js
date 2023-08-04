@@ -1,7 +1,7 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 // @mui
 import {
@@ -26,10 +26,8 @@ import {
 import Label from '../../components/label';
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
-// mock
-import AGELIST from '../../_mock/age';
 import { TableListHead, TableListToolbar } from '../../components/table';
-
+import { ageGroupApi } from '../../api';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -71,7 +69,7 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function AGEListPage() {
+export default function AgeGroupListPage() {
   const [open, setOpen] = useState(null);
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('asc');
@@ -79,6 +77,21 @@ export default function AGEListPage() {
   const [orderBy, setOrderBy] = useState('name');
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
+
+  const [ageGroupList, setAgeGroupList] = useState([]);
+
+  useEffect(() => {
+    const fetchAgeGroupList = async () => {
+      try {
+        const response = await ageGroupApi.getAll();
+        setAgeGroupList(response);
+        console.log(response);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchAgeGroupList();
+  }, []);
 
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -96,7 +109,7 @@ export default function AGEListPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = AGELIST.map((n) => n.name);
+      const newSelecteds = ageGroupList.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -132,9 +145,9 @@ export default function AGEListPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - AGELIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - ageGroupList.length) : 0;
 
-  const filteredList = applySortFilter(AGELIST, getComparator(order, orderBy), filterName);
+  const filteredList = applySortFilter(ageGroupList, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredList.length && !!filterName;
 
@@ -171,7 +184,7 @@ export default function AGEListPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={AGELIST.length}
+                  rowCount={ageGroupList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
@@ -241,7 +254,7 @@ export default function AGEListPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={AGELIST.length}
+            count={ageGroupList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

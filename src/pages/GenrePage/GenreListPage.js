@@ -32,7 +32,7 @@ import Scrollbar from '../../components/scrollbar';
 // mock
 // import GENRELIST from '../../_mock/genre';
 import { genreApi } from '../../api';
-import { TableListHead, TableListToolbar, NotData, ModalTable } from '../../components/table';
+import { TableListHead, TableListToolbar, NoData, ModalTable, NoSearchData, PopoverMenu } from '../../components/table';
 
 // ----------------------------------------------------------------------
 
@@ -93,12 +93,17 @@ export default function GenreListPage() {
       try {
         const response = await genreApi.getAll();
         setGenreList(response);
+        console.log('Fetch genre list successfully: ', response);
       } catch (error) {
         console.log('Failed to fetch genre list: ', error);
       }
     };
     fetchGenreList();
   }, []);
+
+  const handleOpenModalDelete = () => {
+    setOpenModalDelete(true);
+  };
 
   const handleCloseModalDelete = () => {
     setOpenModalDelete(false);
@@ -261,30 +266,8 @@ export default function GenreListPage() {
                     </TableRow>
                   )}
                 </TableBody>
-                {genreList.length <= 0 && <NotData nameTable="thể loại" sx={{ py: 3 }} />}
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Không tìm thấy thể loại
-                          </Typography>
-
-                          <Typography variant="body2">
-                            Không có kết quả nào cho
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Thử kiểm tra lỗi chính tả hoặc sử dụng từ khóa chung hơn.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
+                {genreList.length <= 0 && <NoData nameTable="thể loại" sx={{ py: 3 }} />}
+                {isNotFound && <NoSearchData nameSearch={filterName} />}
               </Table>
             </TableContainer>
           </Scrollbar>
@@ -303,34 +286,12 @@ export default function GenreListPage() {
 
       <ToastContainer />
 
-      <Popover
-        open={Boolean(open)}
-        anchorEl={open}
+      <PopoverMenu
+        open={open}
         onClose={handleCloseMenu}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: {
-            p: 1,
-            width: 140,
-            '& .MuiMenuItem-root': {
-              px: 1,
-              typography: 'body2',
-              borderRadius: 0.75,
-            },
-          },
-        }}
-      >
-        <MenuItem onClick={handleEditRow}>
-          <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          Sửa
-        </MenuItem>
-
-        <MenuItem onClick={() => setOpenModalDelete(true)} sx={{ color: 'error.main' }}>
-          <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Xóa
-        </MenuItem>
-      </Popover>
+        onOpenModalDelete={handleOpenModalDelete}
+        onEditRow={handleEditRow}
+      />
 
       <ModalTable
         open={openModalDelete}

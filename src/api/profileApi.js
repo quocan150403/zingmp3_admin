@@ -1,6 +1,6 @@
 import axiosClient from './axiosClient';
 
-const url = 'genres';
+const url = 'profiles';
 
 const genreApi = {
   getQuery: (params) => axiosClient.get(url, { params }),

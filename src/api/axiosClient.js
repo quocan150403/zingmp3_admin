@@ -6,7 +6,7 @@ import queryString from 'query-string';
 // config` for the full list of configs`
 
 const axiosClient = axios.create({
-  baseURL: `${process.env.REACT_APP_API_URL}/api`,
+  baseURL: `${process.env.REACT_APP_API_URL}/api/`,
   headers: {
     'content-type': 'application/json',
   },

@@ -52,7 +52,7 @@ const navConfig = [
   },
   {
     title: 'Nhóm tuổi',
-    path: '/dashboard/age-groups',
+    path: '/dashboard/age-group',
     icon: <Iconify icon={'eva:award-outline'} width={24} height={24} />,
   },
   {
