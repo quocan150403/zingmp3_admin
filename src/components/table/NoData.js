@@ -1,3 +1,4 @@
+import { Link, useNavigate } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { Stack, TableBody, TableCell, TableRow, Typography } from '@mui/material';
 
@@ -9,6 +10,7 @@ NotData.propTypes = {
 };
 
 export default function NotData({ nameTable }) {
+  const navigate = useNavigate();
   return (
     <TableBody>
       <TableRow>
@@ -16,7 +18,7 @@ export default function NotData({ nameTable }) {
           <Stack direction="column" alignItems="center" spacing={1}>
             <Iconify icon={'eva:inbox-fill'} sx={{ width: 60, height: 60, color: 'text.disabled' }} />
             <Typography variant="h6" paragraph>
-              Không có {nameTable} nào
+              Không có {nameTable} nào <Link to={'add'}>tạo mới</Link>
             </Typography>
           </Stack>
         </TableCell>

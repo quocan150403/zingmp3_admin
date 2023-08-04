@@ -1,5 +1,6 @@
+import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import { Card, Typography, TextField, FormControlLabel, Switch, Container, Stack, Button } from '@mui/material';
 // toast
@@ -10,13 +11,32 @@ import { countryApi } from '../../api';
 
 // ----------------------------------------------------------------------
 
-export default function CountryAddPage() {
+export default function CountryEditPage() {
   const [status, setStatus] = useState(true);
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
   const [language, setLanguage] = useState('');
   const [telephone, setTelephone] = useState('');
   const [currency, setCurrency] = useState('');
+  const { id } = useParams();
+
+  useEffect(() => {
+    const fetchCountry = async () => {
+      try {
+        const res = await countryApi.getById(id);
+        const { name, code, language, telephone, currency, status } = res;
+        setName(name);
+        setCode(code);
+        setLanguage(language);
+        setTelephone(telephone);
+        setCurrency(currency);
+        setStatus(status);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchCountry();
+  }, [id]);
 
   const resetForm = () => {
     setName('');
@@ -38,10 +58,10 @@ export default function CountryAddPage() {
     };
 
     try {
-      await toast.promise(countryApi.add(data), {
-        pending: 'Thêm quốc gia...',
-        success: 'Thêm quốc gia thành công!',
-        error: 'Thêm quốc gia thất bại!',
+      await toast.promise(countryApi.edit(id, data), {
+        pending: 'Đang cập nhật quốc gia...',
+        success: 'Cập nhật quốc gia thành công!',
+        error: 'Cập nhật quốc gia thất bại!',
       });
       resetForm();
     } catch (error) {
@@ -52,12 +72,12 @@ export default function CountryAddPage() {
   return (
     <>
       <Helmet>
-        <title> Thêm Quốc Gia | BeeCine </title>
+        <title> Cập Nhật Quốc Gia | BeeCine </title>
       </Helmet>
 
       <Container>
         <Typography variant="h4" mb={5}>
-          Thêm Quốc Gia
+          Cập Nhật Quốc Gia
         </Typography>
 
         <Card sx={{ p: 3 }}>
@@ -115,7 +135,7 @@ export default function CountryAddPage() {
             />
 
             <Button onClick={handleSubmit} size="large" variant="contained" color="inherit">
-              Thêm quốc gia
+              Lưu
             </Button>
           </Stack>
         </Card>

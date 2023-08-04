@@ -1,12 +1,12 @@
 import { MenuItem, Popover } from '@mui/material';
 import Iconify from '../iconify/Iconify';
 
-export default function PopoverMenu({ open, onClose, onOpenModalDelete, onEditRow }) {
+export default function PopoverMenu({ open, onClosePopover, onClickBtnDelete, onClickBtnEdit }) {
   return (
     <Popover
       open={Boolean(open)}
       anchorEl={open}
-      onClose={onClose}
+      onClose={onClosePopover}
       anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
       transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       PaperProps={{
@@ -21,12 +21,12 @@ export default function PopoverMenu({ open, onClose, onOpenModalDelete, onEditRo
         },
       }}
     >
-      <MenuItem onClick={onEditRow}>
+      <MenuItem onClick={onClickBtnEdit}>
         <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
         Sửa
       </MenuItem>
 
-      <MenuItem onClick={onOpenModalDelete} sx={{ color: 'error.main' }}>
+      <MenuItem onClick={onClickBtnDelete} sx={{ color: 'error.main' }}>
         <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
         Xóa
       </MenuItem>

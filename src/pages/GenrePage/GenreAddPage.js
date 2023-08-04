@@ -25,7 +25,7 @@ export default function GenreAddPage() {
     const data = {
       name,
       isChildren,
-      status: status ? 'active' : 'inactive',
+      status,
     };
     try {
       await toast.promise(genreApi.add(data), {

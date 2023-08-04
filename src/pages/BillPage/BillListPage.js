@@ -213,7 +213,7 @@ export default function BILLListPage() {
                         <TableCell align="left">{method}</TableCell>
 
                         <TableCell align="left">
-                          <Label color={(status === 'inactive' && 'error') || 'success'}>{sentenceCase(status)}</Label>
+                          <Label color={(status && 'success') || 'error'}>{(status && 'active') || 'inactive'}</Label>
                         </TableCell>
 
                         <TableCell align="right">

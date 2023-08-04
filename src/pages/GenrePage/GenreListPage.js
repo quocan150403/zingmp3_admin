@@ -1,5 +1,4 @@
 import { Helmet } from 'react-helmet-async';
-import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -32,7 +31,17 @@ import Scrollbar from '../../components/scrollbar';
 // mock
 // import GENRELIST from '../../_mock/genre';
 import { genreApi } from '../../api';
-import { TableListHead, TableListToolbar, NoData, ModalTable, NoSearchData, PopoverMenu } from '../../components/table';
+import {
+  TableListHead,
+  TableListToolbar,
+  NoData,
+  ModalTable,
+  NoSearchData,
+  PopoverMenu,
+  applySortFilter,
+  descendingComparator,
+  getComparator,
+} from '../../components/table';
 
 // ----------------------------------------------------------------------
 
@@ -45,37 +54,7 @@ const TABLE_HEAD = [
 
 // ----------------------------------------------------------------------
 
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function applySortFilter(array, comparator, query) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  if (query) {
-    return filter(array, (_data) => _data.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
-  }
-  return stabilizedThis.map((el) => el[0]);
-}
-
 export default function GenreListPage() {
-  const navigate = useNavigate();
   const [open, setOpen] = useState(null);
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('asc');
@@ -83,8 +62,9 @@ export default function GenreListPage() {
   const [orderBy, setOrderBy] = useState('name');
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [openModalDelete, setOpenModalDelete] = useState(false);
 
+  const navigate = useNavigate();
+  const [openModalDelete, setOpenModalDelete] = useState(false);
   const [genreList, setGenreList] = useState([]);
   const [idRow, setIdRow] = useState('');
 
@@ -101,28 +81,14 @@ export default function GenreListPage() {
     fetchGenreList();
   }, []);
 
-  const handleOpenModalDelete = () => {
-    setOpenModalDelete(true);
-  };
-
-  const handleCloseModalDelete = () => {
-    setOpenModalDelete(false);
-  };
-
-  const handleOpenMenu = (event) => {
-    setOpen(event.currentTarget);
-    setIdRow(event.currentTarget.dataset.id);
-  };
-
   const handleEditRow = () => {
     navigate(`/dashboard/genre/edit/${idRow}`);
   };
 
-  const handleDeleteAllRows = async () => {};
-
   const handleDeleteRow = async () => {
     setOpenModalDelete(false);
     setOpen(null);
+
     try {
       await toast.promise(genreApi.delete(idRow), {
         pending: 'Đang xóa thể loại...',
@@ -136,8 +102,12 @@ export default function GenreListPage() {
     }
   };
 
-  const handleCloseMenu = () => {
-    setOpen(null);
+  const handleDeleteAllRows = async () => {};
+
+  // Default: sort by name, ascending
+  const handleOpenMenu = (event) => {
+    setOpen(event.currentTarget);
+    setIdRow(event.currentTarget.dataset.id);
   };
 
   const handleRequestSort = (event, property) => {
@@ -249,7 +219,7 @@ export default function GenreListPage() {
                         </TableCell>
 
                         <TableCell align="left">
-                          <Label color={(status === 'inactive' && 'error') || 'success'}>{sentenceCase(status)}</Label>
+                          <Label color={(status && 'success') || 'error'}>{(status && 'active') || 'inactive'}</Label>
                         </TableCell>
 
                         <TableCell align="right">
@@ -285,17 +255,16 @@ export default function GenreListPage() {
       </Container>
 
       <ToastContainer />
-
       <PopoverMenu
         open={open}
-        onClose={handleCloseMenu}
-        onOpenModalDelete={handleOpenModalDelete}
-        onEditRow={handleEditRow}
+        onClosePopover={() => setOpen(null)}
+        onClickBtnDelete={() => setOpenModalDelete(true)}
+        onClickBtnEdit={handleEditRow}
       />
 
       <ModalTable
         open={openModalDelete}
-        onClose={handleCloseModalDelete}
+        onClose={() => setOpenModalDelete(false)}
         onConfirm={handleDeleteRow}
         title="Xóa thể loại"
         content="Bạn có chắc chắn muốn xóa thể loại này?"

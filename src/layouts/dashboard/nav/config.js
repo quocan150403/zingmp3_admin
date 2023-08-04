@@ -41,6 +41,11 @@ const navConfig = [
     icon: <Iconify icon={'eva:people-outline'} width={24} height={24} />,
   },
   {
+    title: 'Quốc gia',
+    path: '/dashboard/country',
+    icon: <Iconify icon={'eva:flag-outline'} width={24} height={24} />,
+  },
+  {
     title: 'Gói đăng ký',
     path: '/dashboard/subscription',
     icon: <Iconify icon={'eva:credit-card-outline'} width={24} height={24} />,

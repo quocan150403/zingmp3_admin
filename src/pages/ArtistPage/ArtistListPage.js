@@ -206,7 +206,7 @@ export default function ArtistListPage() {
                         <TableCell align="left">{country}</TableCell>
 
                         <TableCell align="left">
-                          <Label color={(status === 'inactive' && 'error') || 'success'}>{sentenceCase(status)}</Label>
+                          <Label color={(status && 'success') || 'error'}>{(status && 'active') || 'inactive'}</Label>
                         </TableCell>
 
                         <TableCell align="right">

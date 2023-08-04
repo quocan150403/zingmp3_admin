@@ -1,19 +1,15 @@
 import { Helmet } from 'react-helmet-async';
-import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 // @mui
 import {
   Card,
   Table,
   Stack,
-  Paper,
   Button,
-  Popover,
   Checkbox,
   TableRow,
-  MenuItem,
   TableBody,
   TableCell,
   Container,
@@ -22,11 +18,22 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
+import { ToastContainer, toast } from 'react-toastify';
+
 // components
 import Label from '../../components/label';
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
-import { TableListHead, TableListToolbar } from '../../components/table';
+import {
+  TableListHead,
+  TableListToolbar,
+  NoData,
+  NoSearchData,
+  PopoverMenu,
+  ModalTable,
+  applySortFilter,
+  getComparator,
+} from '../../components/table';
 import { ageGroupApi } from '../../api';
 // ----------------------------------------------------------------------
 
@@ -39,36 +46,6 @@ const TABLE_HEAD = [
 ];
 
 // ----------------------------------------------------------------------
-
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function applySortFilter(array, comparator, query) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  if (query) {
-    return filter(array, (_data) => _data.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
-  }
-  return stabilizedThis.map((el) => el[0]);
-}
-
 export default function AgeGroupListPage() {
   const [open, setOpen] = useState(null);
   const [page, setPage] = useState(0);
@@ -78,7 +55,10 @@ export default function AgeGroupListPage() {
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const navigate = useNavigate();
+  const [openModalDelete, setOpenModalDelete] = useState(false);
   const [ageGroupList, setAgeGroupList] = useState([]);
+  const [idRow, setIdRow] = useState('');
 
   useEffect(() => {
     const fetchAgeGroupList = async () => {
@@ -93,14 +73,34 @@ export default function AgeGroupListPage() {
     fetchAgeGroupList();
   }, []);
 
+  const handleEditRow = () => {
+    navigate(`/dashboard/age-group/edit/${idRow}`);
+  };
+
+  const handleDeleteRow = async () => {
+    setOpenModalDelete(false);
+    setOpen(null);
+
+    try {
+      await toast.promise(ageGroupApi.delete(idRow), {
+        pending: 'Đang xóa nhóm tuổi...',
+        success: 'Xóa nhóm tuổi thành công!',
+        error: 'Xóa nhóm tuổi thất bại!',
+      });
+      setAgeGroupList(ageGroupList.filter((genre) => genre._id !== idRow));
+    } catch (error) {
+      console.log('Failed to delete genre: ', error);
+    }
+  };
+
+  const handleDeleteAllRows = async () => {};
+
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
+    setIdRow(event.currentTarget.value);
   };
 
-  const handleCloseMenu = () => {
-    setOpen(null);
-  };
-
+  // Define function to handle sort
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -191,11 +191,11 @@ export default function AgeGroupListPage() {
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, description, minimum, status } = row;
+                    const { _id, name, description, minimum, status } = row;
                     const selectedList = selected.indexOf(name) !== -1;
 
                     return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedList}>
+                      <TableRow hover key={_id} tabIndex={-1} role="checkbox" selected={selectedList}>
                         <TableCell padding="checkbox">
                           <Checkbox checked={selectedList} onChange={(event) => handleClick(event, name)} />
                         </TableCell>
@@ -206,11 +206,11 @@ export default function AgeGroupListPage() {
                         <TableCell align="left">{minimum}</TableCell>
 
                         <TableCell align="left">
-                          <Label color={(status === 'inactive' && 'error') || 'success'}>{sentenceCase(status)}</Label>
+                          <Label color={(status && 'success') || 'error'}>{(status && 'active') || 'inactive'}</Label>
                         </TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <IconButton size="large" color="inherit" onClick={handleOpenMenu} value={_id}>
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -224,29 +224,8 @@ export default function AgeGroupListPage() {
                   )}
                 </TableBody>
 
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Không tìm thấy kết quả nào
-                          </Typography>
-
-                          <Typography variant="body2">
-                            Không có kết quả nào cho
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Thử kiểm tra lỗi chính tả hoặc sử dụng từ khóa chung hơn.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
+                {ageGroupList.length <= 0 && <NoData nameTable="nhóm tuổi" />}
+                {isNotFound && <NoSearchData nameSearch={filterName} />}
               </Table>
             </TableContainer>
           </Scrollbar>
@@ -263,34 +242,21 @@ export default function AgeGroupListPage() {
         </Card>
       </Container>
 
-      <Popover
-        open={Boolean(open)}
-        anchorEl={open}
-        onClose={handleCloseMenu}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: {
-            p: 1,
-            width: 140,
-            '& .MuiMenuItem-root': {
-              px: 1,
-              typography: 'body2',
-              borderRadius: 0.75,
-            },
-          },
-        }}
-      >
-        <MenuItem>
-          <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          Sửa
-        </MenuItem>
+      <ToastContainer />
+      <PopoverMenu
+        open={open}
+        onClosePopover={() => setOpen(null)}
+        onClickBtnDelete={() => setOpenModalDelete(true)}
+        onClickBtnEdit={handleEditRow}
+      />
 
-        <MenuItem sx={{ color: 'error.main' }}>
-          <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Xóa
-        </MenuItem>
-      </Popover>
+      <ModalTable
+        open={openModalDelete}
+        onClose={() => setOpenModalDelete(false)}
+        onConfirm={handleDeleteRow}
+        title="Xoá nhóm tuổi"
+        content="Bạn có chắc chắn muốn xoá nhóm tuổi này?"
+      />
     </>
   );
 }

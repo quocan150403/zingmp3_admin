@@ -206,7 +206,7 @@ export default function USERListPage() {
                         <TableCell align="left">{points}</TableCell>
 
                         <TableCell align="left">
-                          <Label color={(status === 'inactive' && 'error') || 'success'}>{sentenceCase(status)}</Label>
+                          <Label color={(status && 'success') || 'error'}>{(status && 'active') || 'inactive'}</Label>
                         </TableCell>
 
                         <TableCell align="right">

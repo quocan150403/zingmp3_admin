@@ -26,7 +26,7 @@ export default function GenreEditPage() {
         const { name, isChildren, status } = res;
         setName(name);
         setIsChildren(isChildren);
-        setStatus(status === 'active');
+        setStatus(status);
       } catch (error) {
         console.log(error);
       }
@@ -44,7 +44,7 @@ export default function GenreEditPage() {
     const data = {
       name,
       isChildren,
-      status: status ? 'active' : 'inactive',
+      status,
     };
     const res = await toast.promise(
       genreApi.edit(id, data),
