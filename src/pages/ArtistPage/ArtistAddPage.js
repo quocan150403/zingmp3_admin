@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import {
   Card,
@@ -18,9 +18,15 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
+// import FormData from 'FormData';
+// toast
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+import { artistApi } from '../../api';
 import Avatar from '../../components/avatar';
 
-const countries = [
+const COUNTRIES = [
   { code: 'AD', label: 'Andorra', phone: '376' },
   {
     code: 'AE',
@@ -445,28 +451,46 @@ const countries = [
   { code: 'ZW', label: 'Zimbabwe', phone: '263' },
 ];
 
-const JOBS = [
-  'Actor',
-  'Director',
-  'Writer',
-  'Producer',
-  'Cinematographer',
-  'Editor',
-  'Composer',
-  'Costume Designer',
-  'Production Designer',
-  'Art Director',
-  'Set Decorator',
-  'Soundtrack',
-  'Self',
-  'Archive Footage',
-];
+const JOBS = ['Actor', 'Director', 'Producer'];
+
 // ----------------------------------------------------------------------
 export default function ArtistAddPage() {
-  const [checked, setChecked] = useState(true);
+  const [status, setStatus] = useState(true);
+  const [name, setName] = useState('');
+  const [bio, setBio] = useState('');
   const [role, setRole] = useState('');
-  const handleChange = (event) => {
-    setChecked(event.target.checked);
+  const [image, setImage] = useState(null);
+  const [country, setCountry] = useState('');
+
+  const resetForm = () => {
+    setName('');
+    setBio('');
+    setRole('');
+    setStatus(true);
+    setImage(null);
+    setCountry('');
+    setImage(null);
+  };
+
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('role', role);
+    formData.append('bio', bio);
+    formData.append('country', country);
+    formData.append('status', status);
+    formData.append('image', image);
+
+    try {
+      await toast.promise(artistApi.add(formData), {
+        pending: 'Đang thêm ...',
+        success: 'Thêm thành công!',
+        error: 'Thêm thất bại!',
+      });
+      resetForm();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -476,6 +500,7 @@ export default function ArtistAddPage() {
       </Helmet>
 
       <Container>
+        <ToastContainer />
         <Typography variant="h4" mb={5}>
           Thêm diễn viên / đạo diễn
         </Typography>
@@ -483,14 +508,30 @@ export default function ArtistAddPage() {
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <Card sx={{ p: 4, pt: 10 }}>
-              <Avatar />
+              <Avatar image={image} setImage={setImage} />
             </Card>
           </Grid>
           <Grid item xs={12} md={8}>
             <Card sx={{ p: 3 }}>
               <Stack spacing={3} mb={3} width="100%">
-                <TextField fullWidth label="Tên diễn viên / đạo diễn" variant="outlined" name="name" />
-                <TextField fullWidth multiline rows={4} label="Mô tả" variant="outlined" name="description" />
+                <TextField
+                  fullWidth
+                  label="Tên diễn viên / đạo diễn"
+                  variant="outlined"
+                  name="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Mô tả"
+                  variant="outlined"
+                  name="bio"
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                />
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2} mb={3}>
                 <FormControl fullWidth>
@@ -509,13 +550,13 @@ export default function ArtistAddPage() {
                     ))}
                   </Select>
                 </FormControl>
-
                 <Autocomplete
-                  id="country-select-demo"
                   fullWidth
-                  options={countries}
+                  id="country-select-demo"
+                  options={COUNTRIES}
                   autoHighlight
                   getOptionLabel={(option) => option.label}
+                  onChange={(e, value) => setCountry(value.label)}
                   renderOption={(props, option) => (
                     <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
                       <img
@@ -542,12 +583,19 @@ export default function ArtistAddPage() {
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
                 <FormControlLabel
-                  control={<Switch checked={checked} onChange={handleChange} name="checked" color="primary" />}
+                  control={
+                    <Switch
+                      checked={status}
+                      onChange={(e) => setStatus(e.target.checked)}
+                      name="checked"
+                      color="primary"
+                    />
+                  }
                   label="Trạng thái"
                 />
 
-                <Button size="large" variant="contained" color="inherit">
-                  Thêm thể loại mới
+                <Button onClick={handleSubmit} size="large" variant="contained" color="inherit">
+                  Thêm diễn viên / đạo diễn
                 </Button>
               </Stack>
             </Card>

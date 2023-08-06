@@ -55,13 +55,15 @@ const StyledLabel = styled('label')(({ theme }) => ({
   },
 }));
 
-export default function Avatar() {
+// ----------------------------------------------------------------------
+
+export default function Avatar({ image, setImage }) {
   return (
     <StyledRoot>
       <StyleBox>
         <StyledLabel>
           <Icon width={32} height={32} />
-          <input type="file" hidden />
+          <input type="file" name="image" onChange={(e) => setImage(e.target.files[0])} />
           <Typography variant="caption" sx={{ mt: 1 }}>
             Chọn ảnh
           </Typography>

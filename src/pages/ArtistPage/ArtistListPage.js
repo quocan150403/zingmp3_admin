@@ -1,8 +1,8 @@
 import { Helmet } from 'react-helmet-async';
 import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 // @mui
 import {
   Card,
@@ -23,55 +23,35 @@ import {
   TablePagination,
   Avatar,
 } from '@mui/material';
+import { ToastContainer, toast } from 'react-toastify';
 // components
 import Label from '../../components/label';
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
-// mock
-import ARTISTLIST from '../../_mock/artist';
-import { TableListHead, TableListToolbar } from '../../components/table';
+import {
+  TableListHead,
+  TableListToolbar,
+  ModalTable,
+  NoData,
+  NoSearchData,
+  PopoverMenu,
+  applySortFilter,
+  getComparator,
+} from '../../components/table';
+
+import { artistApi } from '../../api';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Tên', alignRight: false },
   { id: 'role', label: 'Ngành nghề', alignRight: false },
-  { id: 'birthday', label: 'Ngày sinh', alignRight: false },
   { id: 'country', label: 'Quốc gia', alignRight: false },
   { id: 'status', label: 'Trạng thái', alignRight: false },
   { id: '' },
 ];
 
 // ----------------------------------------------------------------------
-
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function applySortFilter(array, comparator, query) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  if (query) {
-    return filter(array, (_data) => _data.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
-  }
-  return stabilizedThis.map((el) => el[0]);
-}
 
 export default function ArtistListPage() {
   const [open, setOpen] = useState(null);
@@ -82,8 +62,49 @@ export default function ArtistListPage() {
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const navigate = useNavigate();
+  const [openModalDelete, setOpenModalDelete] = useState(false);
+  const [artistList, setArtistList] = useState([]);
+  const [idRow, setIdRow] = useState('');
+
+  useEffect(() => {
+    const fetchArtistList = async () => {
+      try {
+        const response = await artistApi.getAll();
+        setArtistList(response);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchArtistList();
+  }, []);
+
+  const handleEditRow = () => {
+    navigate(`/dashboard/country/edit/${idRow}`);
+    console.log(idRow);
+  };
+
+  const handleDeleteRow = async () => {
+    setOpenModalDelete(false);
+    setOpen(null);
+
+    try {
+      await toast.promise(artistApi.delete(idRow), {
+        pending: 'Đang xóa nhóm tuổi...',
+        success: 'Xóa nhóm tuổi thành công!',
+        error: 'Xóa nhóm tuổi thất bại!',
+      });
+      setArtistList(artistList.filter((genre) => genre._id !== idRow));
+    } catch (error) {
+      console.log('Failed to delete genre: ', error);
+    }
+  };
+
+  const handleDeleteAllRows = async () => {};
+
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
+    setIdRow(event.currentTarget.value);
   };
 
   const handleCloseMenu = () => {
@@ -98,7 +119,7 @@ export default function ArtistListPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = ARTISTLIST.map((n) => n.name);
+      const newSelecteds = artistList.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -134,9 +155,9 @@ export default function ArtistListPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - ARTISTLIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - artistList.length) : 0;
 
-  const filteredList = applySortFilter(ARTISTLIST, getComparator(order, orderBy), filterName);
+  const filteredList = applySortFilter(artistList, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredList.length && !!filterName;
 
@@ -173,18 +194,18 @@ export default function ArtistListPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={ARTISTLIST.length}
+                  rowCount={artistList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, name, role, avatarUrl, birthday, country, status } = row;
+                    const { _id, name, role, avatarUrl, country, status } = row;
                     const selectedList = selected.indexOf(name) !== -1;
 
                     return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedList}>
+                      <TableRow hover key={_id} tabIndex={-1} role="checkbox" selected={selectedList}>
                         <TableCell padding="checkbox">
                           <Checkbox checked={selectedList} onChange={(event) => handleClick(event, name)} />
                         </TableCell>
@@ -202,7 +223,6 @@ export default function ArtistListPage() {
                           <Label color={(role === 'director' && 'secondary') || 'warning'}>{sentenceCase(role)}</Label>
                         </TableCell>
 
-                        <TableCell align="left">{birthday}</TableCell>
                         <TableCell align="left">{country}</TableCell>
 
                         <TableCell align="left">
@@ -210,7 +230,7 @@ export default function ArtistListPage() {
                         </TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <IconButton size="large" color="inherit" onClick={handleOpenMenu} value={_id}>
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -224,29 +244,8 @@ export default function ArtistListPage() {
                   )}
                 </TableBody>
 
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Không tìm thấy thể loại
-                          </Typography>
-
-                          <Typography variant="body2">
-                            Không có kết quả nào cho
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Thử kiểm tra lỗi chính tả hoặc sử dụng từ khóa chung hơn.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
+                {artistList.length <= 0 && <NoData nameTable="diễn viên / đạo diễn" />}
+                {isNotFound && <NoSearchData nameSearch={filterName} />}
               </Table>
             </TableContainer>
           </Scrollbar>
@@ -254,7 +253,7 @@ export default function ArtistListPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={ARTISTLIST.length}
+            count={artistList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -263,34 +262,21 @@ export default function ArtistListPage() {
         </Card>
       </Container>
 
-      <Popover
-        open={Boolean(open)}
-        anchorEl={open}
-        onClose={handleCloseMenu}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: {
-            p: 1,
-            width: 140,
-            '& .MuiMenuItem-root': {
-              px: 1,
-              typography: 'body2',
-              borderRadius: 0.75,
-            },
-          },
-        }}
-      >
-        <MenuItem>
-          <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          Sửa
-        </MenuItem>
+      <ToastContainer />
+      <PopoverMenu
+        open={open}
+        onClosePopover={() => setOpen(null)}
+        onClickBtnDelete={() => setOpenModalDelete(true)}
+        onClickBtnEdit={handleEditRow}
+      />
 
-        <MenuItem sx={{ color: 'error.main' }}>
-          <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Xóa
-        </MenuItem>
-      </Popover>
+      <ModalTable
+        open={openModalDelete}
+        onClose={() => setOpenModalDelete(false)}
+        onConfirm={handleDeleteRow}
+        title="Xóa đạo diễn / diễn viên"
+        content="Bạn có chắc chắn muốn xoá đạo diễn / diễn viên này?"
+      />
     </>
   );
 }

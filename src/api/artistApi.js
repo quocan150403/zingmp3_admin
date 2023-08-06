@@ -8,7 +8,12 @@ const genreApi = {
   getById: (id) => axiosClient.get(`${url}/${id}`),
   getBySlug: (slug) => axiosClient.get(url, { slug }),
   getTrash: () => axiosClient.get(`${url}/trash`),
-  add: (data) => axiosClient.post(`${url}/store`, data),
+  add: (data) =>
+    axiosClient.post(`${url}/store`, data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
   edit: (id, data) => axiosClient.put(`${url}/update/${id}`, data),
   delete: (id) => axiosClient.delete(`${url}/delete/${id}`),
   deleteMany: (ids) => axiosClient.post(`${url}/delete-many`, ids),

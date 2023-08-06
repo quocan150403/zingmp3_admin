@@ -34,12 +34,6 @@ export default function GenreEditPage() {
     fetchGenre();
   }, [id]);
 
-  const resetForm = () => {
-    setName('');
-    setIsChildren(false);
-    setStatus(true);
-  };
-
   const handleSubmit = async () => {
     const data = {
       name,
@@ -60,9 +54,6 @@ export default function GenreEditPage() {
         autoClose: 2000,
       }
     );
-    if (res?.status === 200) {
-      resetForm();
-    }
   };
 
   return (

@@ -38,15 +38,6 @@ export default function CountryEditPage() {
     fetchCountry();
   }, [id]);
 
-  const resetForm = () => {
-    setName('');
-    setCode('');
-    setLanguage('');
-    setTelephone('');
-    setCurrency('');
-    setStatus(true);
-  };
-
   const handleSubmit = async () => {
     const data = {
       name,
@@ -63,7 +54,6 @@ export default function CountryEditPage() {
         success: 'Cập nhật quốc gia thành công!',
         error: 'Cập nhật quốc gia thất bại!',
       });
-      resetForm();
     } catch (error) {
       console.log(error);
     }
