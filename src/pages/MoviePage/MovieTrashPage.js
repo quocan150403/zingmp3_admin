@@ -1,5 +1,4 @@
 import { Helmet } from 'react-helmet-async';
-import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
@@ -8,12 +7,9 @@ import {
   Card,
   Table,
   Stack,
-  Paper,
   Button,
-  Popover,
   Checkbox,
   TableRow,
-  MenuItem,
   TableBody,
   TableCell,
   Container,
@@ -21,39 +17,48 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
-  Avatar,
+  Tooltip,
 } from '@mui/material';
+// Toast
 import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // components
 import Label from '../../components/label';
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
+
+import { fDate } from '../../utils/formatTime';
+
+import { movieApi } from '../../api';
 import {
-  TableListHead,
-  TableListToolbar,
-  ModalTable,
   NoData,
+  ModalTable,
   NoSearchData,
   PopoverMenu,
+  TableListHead,
   applySortFilter,
   getComparator,
+  TableListToolbar,
 } from '../../components/table';
-
-import { artistApi } from '../../api';
+// mock
+// import MOVIELIST from '../../_mock/movie';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Tên', alignRight: false },
-  { id: 'role', label: 'Ngành nghề', alignRight: false },
-  { id: 'country', label: 'Quốc gia', alignRight: false },
+  { id: 'name', label: 'Tên phim', alignRight: false },
+  { id: 'rating', label: 'Đánh giá', alignRight: false },
+  { id: 'genre', label: 'Thể loại', alignRight: false },
+  { id: 'releaseDate', label: 'Ngày phát hành', alignRight: false },
+  { id: 'isSeries', label: 'Loại phim', alignRight: false },
+  { id: 'type', label: 'Trả phí', alignRight: false },
   { id: 'status', label: 'Trạng thái', alignRight: false },
   { id: '' },
 ];
 
 // ----------------------------------------------------------------------
 
-export default function ArtistListPage() {
+export default function MovieTrashPage() {
   const [open, setOpen] = useState(null);
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('asc');
@@ -62,53 +67,48 @@ export default function ArtistListPage() {
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
-  const navigate = useNavigate();
   const [openModalDelete, setOpenModalDelete] = useState(false);
-  const [artistList, setArtistList] = useState([]);
-  const [idRow, setIdRow] = useState('');
+  const [movieList, setMovieList] = useState([]);
 
   useEffect(() => {
-    const fetchArtistList = async () => {
+    const fetchGenreList = async () => {
       try {
-        const response = await artistApi.getAll();
-        setArtistList(response);
+        const response = await movieApi.getTrash();
+        setMovieList(response);
       } catch (error) {
-        console.log(error);
+        console.log('Failed to fetch genre list: ', error);
       }
     };
-    fetchArtistList();
+    fetchGenreList();
   }, []);
 
-  const handleEditRow = () => {
-    navigate(`/dashboard/country/edit/${idRow}`);
-    console.log(idRow);
+  const handleRestore = async (e) => {
+    const id = e.currentTarget.value;
+    try {
+      await toast.promise(movieApi.restore(id), {
+        pending: 'Đang khôi phục phim...',
+        success: 'Khôi phục phim thành công!',
+        error: 'Khôi phục phim thất bại!',
+      });
+      setMovieList(movieList.filter((genre) => genre._id !== id));
+    } catch (error) {
+      console.log('Failed to restore genre: ', error);
+    }
   };
-
-  const handleDeleteRow = async () => {
+  const handleForceDelete = async (e) => {
+    const id = e.currentTarget.value;
     setOpenModalDelete(false);
-    setOpen(null);
 
     try {
-      await toast.promise(artistApi.delete(idRow), {
-        pending: 'Đang xóa nhóm tuổi...',
-        success: 'Xóa nhóm tuổi thành công!',
-        error: 'Xóa nhóm tuổi thất bại!',
+      await toast.promise(movieApi.forceDelete(id), {
+        pending: 'Đang xoá phim...',
+        success: 'Xoá phim thành công!',
+        error: 'Xoá phim thất bại!',
       });
-      setArtistList(artistList.filter((genre) => genre._id !== idRow));
+      setMovieList(movieList.filter((genre) => genre._id !== id));
     } catch (error) {
       console.log('Failed to delete genre: ', error);
     }
-  };
-
-  const handleDeleteAllRows = async () => {};
-
-  const handleOpenMenu = (event) => {
-    setOpen(event.currentTarget);
-    setIdRow(event.currentTarget.value);
-  };
-
-  const handleCloseMenu = () => {
-    setOpen(null);
   };
 
   const handleRequestSort = (event, property) => {
@@ -119,7 +119,7 @@ export default function ArtistListPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = artistList.map((n) => n.name);
+      const newSelecteds = movieList.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -155,26 +155,26 @@ export default function ArtistListPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - artistList.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - movieList.length) : 0;
 
-  const filteredList = applySortFilter(artistList, getComparator(order, orderBy), filterName);
+  const filteredList = applySortFilter(movieList, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredList.length && !!filterName;
 
   return (
     <>
       <Helmet>
-        <title> Danh Sách Diễn Viên / Đạo Diễn | BeeCine </title>
+        <title> Danh Sách Phim Đã Xóa | BeeCine </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Danh sách diễn viên / đạo diễn
+            Danh sách phim đã xóa
           </Typography>
-          <Link to="/dashboard/artist/add">
-            <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-              Thêm diễn viên / đạo diễn
+          <Link to="/dashboard/movie">
+            <Button variant="contained" endIcon={<Iconify icon="eva:arrow-ios-forward-fill" />}>
+              Quay lại
             </Button>
           </Link>
         </Stack>
@@ -184,7 +184,7 @@ export default function ArtistListPage() {
             numSelected={selected.length}
             filterName={filterName}
             onFilterName={handleFilterByName}
-            placeholder="Tìm kiếm ..."
+            placeholder="Tìm kiếm phim..."
           />
 
           <Scrollbar>
@@ -194,62 +194,74 @@ export default function ArtistListPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={artistList.length}
+                  rowCount={movieList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, name, role, avatarUrl, country, status } = row;
-                    const selectedList = selected.indexOf(name) !== -1;
+                    const { _id, thumbnailUrl, title, rating, genres, releaseDate, isSeries, type, status } = row;
+                    const selectedList = selected.indexOf(title) !== -1;
 
                     return (
                       <TableRow hover key={_id} tabIndex={-1} role="checkbox" selected={selectedList}>
                         <TableCell padding="checkbox">
-                          <Checkbox checked={selectedList} onChange={(event) => handleClick(event, name)} />
+                          <Checkbox checked={selectedList} onChange={(event) => handleClick(event, title)} />
                         </TableCell>
 
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
-                            <Stack direction="column" spacing={0}>
-                              <Typography variant="subtitle2" noWrap>
-                                {name}
-                              </Typography>
-                              <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-                                {role}
-                              </Typography>
-                            </Stack>
+                            <img style={{ height: 40, borderRadius: '4px' }} alt={title} src={thumbnailUrl} />
+                            <Typography variant="subtitle2" noWrap>
+                              {title}
+                            </Typography>
                           </Stack>
                         </TableCell>
 
+                        <TableCell align="left">{rating}</TableCell>
+                        <TableCell align="left">{genres.map((item) => `${item.name} `)}</TableCell>
+                        <TableCell align="left">{fDate(releaseDate)}</TableCell>
+
                         <TableCell align="left">
-                          <Label color={(role === 'director' && 'secondary') || 'warning'}>{sentenceCase(role)}</Label>
+                          <Label color={(isSeries && 'secondary') || 'warning'}>
+                            {(isSeries && 'series') || 'movie'}
+                          </Label>
                         </TableCell>
 
-                        <TableCell align="left">{country}</TableCell>
+                        <TableCell align="left">
+                          <Label color={(type === 'free' && 'secondary') || 'warning'}>{sentenceCase(type)}</Label>
+                        </TableCell>
 
                         <TableCell align="left">
                           <Label color={(status && 'success') || 'error'}>{(status && 'active') || 'inactive'}</Label>
                         </TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu} value={_id}>
-                            <Iconify icon={'eva:more-vertical-fill'} />
-                          </IconButton>
+                          <Stack direction="row" alignItems="center" justifyContent="flex-end">
+                            <Tooltip title="Khôi phục" placement="top">
+                              <IconButton onClick={handleRestore} size="large" color="default" value={_id}>
+                                <Iconify icon={'eva:refresh-fill'} />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="Xoá vĩnh viễn" placement="top">
+                              <IconButton onClick={() => setOpenModalDelete(true)} color="error" value={_id}>
+                                <Iconify icon={'eva:trash-2-fill'} />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
                         </TableCell>
                       </TableRow>
                     );
                   })}
                   {emptyRows > 0 && (
                     <TableRow style={{ height: 53 * emptyRows }}>
-                      <TableCell colSpan={4} />
+                      <TableCell colSpan={10} />
                     </TableRow>
                   )}
                 </TableBody>
 
-                {artistList.length <= 0 && <NoData nameTable="diễn viên / đạo diễn" />}
+                {movieList.length <= 0 && <NoData nameTable="phim" sx={{ py: 3 }} />}
                 {isNotFound && <NoSearchData nameSearch={filterName} />}
               </Table>
             </TableContainer>
@@ -258,7 +270,7 @@ export default function ArtistListPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={artistList.length}
+            count={movieList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -266,21 +278,14 @@ export default function ArtistListPage() {
           />
         </Card>
       </Container>
-
       <ToastContainer />
-      <PopoverMenu
-        open={open}
-        onClosePopover={() => setOpen(null)}
-        onClickBtnDelete={() => setOpenModalDelete(true)}
-        onClickBtnEdit={handleEditRow}
-      />
 
       <ModalTable
         open={openModalDelete}
         onClose={() => setOpenModalDelete(false)}
-        onConfirm={handleDeleteRow}
-        title="Xóa đạo diễn / diễn viên"
-        content="Bạn có chắc chắn muốn xoá đạo diễn / diễn viên này?"
+        onConfirm={handleForceDelete}
+        title="Xóa phim"
+        content="Hành động này sẽ xóa vĩnh viễn phim này khỏi hệ thống. Bạn có chắc chắn muốn xóa?"
       />
     </>
   );

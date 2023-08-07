@@ -1,3 +1,4 @@
+import { useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 import { parseISO } from 'date-fns';
@@ -49,7 +50,8 @@ const TAGS = [
 ];
 
 // ----------------------------------------------------------------------
-export default function MovieAddPage() {
+export default function MovieEditPage() {
+  const { id } = useParams();
   const [genreList, setGenreList] = useState([]);
   const [ageGroupList, setAgeGroupList] = useState([]);
   const [castList, setCastList] = useState([]);
@@ -61,14 +63,14 @@ export default function MovieAddPage() {
   const [cast, setCast] = useState([]);
   const [directors, setDirectors] = useState([]);
   const [tags, setTags] = useState([]);
-  const [age, setAge] = useState(Number);
+  const [age, setAge] = useState(0);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [releaseDate, setReleaseDate] = useState(parseISO(new Date().toISOString()));
   const [isSeries, setIsSeries] = useState(false);
   const [duration, setDuration] = useState('');
-  const [rating, setRating] = useState();
+  const [rating, setRating] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState(null);
   const [trailerUrl, setTrailerUrl] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
@@ -84,6 +86,61 @@ export default function MovieAddPage() {
     duration: '',
     airDate: parseISO(new Date().toISOString()),
   });
+
+  useEffect(() => {
+    const fetchMovie = async () => {
+      try {
+        const response = await movieApi.getById(id);
+        const {
+          _id,
+          genres,
+          country,
+          cast,
+          directors,
+          tags,
+          minimumAge,
+          title,
+          description,
+          releaseDate,
+          isSeries,
+          duration,
+          rating,
+          thumbnailUrl,
+          trailerUrl,
+          status,
+        } = response;
+
+        if (!isSeries) {
+          const episode = await episodeApi.getByMovie(_id);
+          setVideoUrl(episode.videoUrl);
+          setMoreInfo({
+            ...episode,
+            airDate: parseISO(episode.airDate),
+          });
+        }
+
+        setGenres(genres);
+        setCountry(country);
+        setCast(cast);
+        setDirectors(directors);
+        setTags(tags);
+
+        setAge(minimumAge);
+        setTitle(title);
+        setDescription(description);
+        setReleaseDate(parseISO(releaseDate));
+        setIsSeries(isSeries);
+        setDuration(duration);
+        setRating(rating);
+        setThumbnailUrl(thumbnailUrl);
+        setTrailerUrl(trailerUrl);
+        setStatus(status);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchMovie();
+  }, [id]);
 
   useEffect(() => {
     const fetchGenreList = async () => {
@@ -142,25 +199,6 @@ export default function MovieAddPage() {
     fetchAgeGroupList();
   }, []);
 
-  const resetForm = () => {
-    setGenres([]);
-    setCountry({});
-    setCast([]);
-    setDirectors([]);
-    setTags([]);
-    setAge(Number);
-    setTitle('');
-    setDescription('');
-    setReleaseDate(parseISO(new Date().toISOString()));
-    setIsSeries(false);
-    setDuration('');
-    setRating();
-    setThumbnailUrl(null);
-    setTrailerUrl('');
-    setVideoUrl('');
-    setStatus(true);
-  };
-
   const handleSubmit = async () => {
     const formData = new FormData();
     formData.append('genres', JSON.stringify(genres));
@@ -182,26 +220,24 @@ export default function MovieAddPage() {
 
     try {
       toast.loading('Đang thêm phim mới...');
-      const response = await movieApi.add(formData);
+      const response = await movieApi.edit(id, formData);
       const { _id } = response;
-      let episodeData = {
-        movieId: _id,
-        title,
-        videoUrl,
-      };
+      // let episodeData = {
+      //   movieId: _id,
+      //   title,
+      //   videoUrl,
+      // };
 
-      if (more) {
-        episodeData = {
-          ...episodeData,
-          ...moreInfo,
-        };
-      }
+      // if (more) {
+      //   episodeData = {
+      //     ...episodeData,
+      //     ...moreInfo,
+      //   };
+      // }
 
-      await episodeApi.addSingle(episodeData);
+      // await episodeApi.addSingle(episodeData);
       toast.dismiss();
       toast.success('Thêm phim mới thành công!');
-
-      resetForm();
     } catch (error) {
       toast.error('Thêm phim mới thất bại!');
       console.log(error);
@@ -273,7 +309,7 @@ export default function MovieAddPage() {
                 <Autocomplete
                   id="age-group"
                   fullWidth
-                  options={ageGroupList.map((option) => option)}
+                  options={ageGroupList}
                   getOptionLabel={(option) => option.name}
                   isOptionEqualToValue={(option, value) => option._id === value._id}
                   onChange={(event, newValue) => setAge(newValue.minimum)}
@@ -289,6 +325,7 @@ export default function MovieAddPage() {
                   getOptionLabel={(option) => option.name}
                   isOptionEqualToValue={(option, value) => option._id === value._id}
                   onChange={(event, newValue) => setGenres(newValue)}
+                  value={genres}
                   renderInput={(params) => <TextField {...params} label="Thể loại" />}
                 />
               </Stack>
@@ -302,6 +339,7 @@ export default function MovieAddPage() {
                   options={castList.map((option) => option)}
                   getOptionLabel={(option) => option.name}
                   isOptionEqualToValue={(option, value) => option._id === value._id}
+                  value={cast}
                   onChange={(event, newValue) => setCast(newValue)}
                   renderInput={(params) => <TextField {...params} label="Chọn diễn viên" />}
                 />
@@ -313,6 +351,7 @@ export default function MovieAddPage() {
                   options={directorList.map((option) => option)}
                   getOptionLabel={(option) => option.name}
                   isOptionEqualToValue={(option, value) => option._id === value._id}
+                  value={directors}
                   onChange={(event, newValue) => setDirectors(newValue)}
                   renderInput={(params) => <TextField {...params} label="Chọn đạo diễn" />}
                 />
@@ -350,13 +389,15 @@ export default function MovieAddPage() {
                     />
                   )}
                 />
+
                 <TextField
                   fullWidth
                   type="number"
                   label="Đánh giá"
-                  name="rating"
-                  onChange={(e) => setRating(e.target.value)}
                   variant="outlined"
+                  name="rating"
+                  value={rating}
+                  onChange={(e) => setRating(e.target.value)}
                   InputProps={{
                     endAdornment: <InputAdornment position="end">0 - 10 điểm</InputAdornment>,
                   }}
@@ -427,6 +468,7 @@ export default function MovieAddPage() {
                   limitTags={5}
                   options={TAGS.map((option) => option.title)}
                   onChange={(event, newValue) => setTags(newValue)}
+                  value={tags}
                   renderTags={(value, getTagProps) =>
                     value.map((option, index) => <Chip variant="filled" label={option} {...getTagProps({ index })} />)
                   }

@@ -7,6 +7,7 @@ const genreApi = {
   getAll: () => axiosClient.get(url),
   getById: (id) => axiosClient.get(`${url}/${id}`),
   getBySlug: (slug) => axiosClient.get(url, { slug }),
+  getByMovie: (id) => axiosClient.get(`${url}/movie/${id}`),
   getTrash: () => axiosClient.get(`${url}/trash`),
   add: (data) =>
     axiosClient.post(`${url}/store`, data, {
@@ -15,7 +16,12 @@ const genreApi = {
       },
     }),
   addSingle: (data) => axiosClient.post(`${url}/store-single`, data),
-  edit: (id, data) => axiosClient.put(`${url}/update/${id}`, data),
+  edit: (id, data) =>
+    axiosClient.put(`${url}/update/${id}`, data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
   delete: (id) => axiosClient.delete(`${url}/delete/${id}`),
   deleteMany: (ids) => axiosClient.post(`${url}/delete-many`, ids),
   restore: (id) => axiosClient.patch(`${url}/restore/${id}`),

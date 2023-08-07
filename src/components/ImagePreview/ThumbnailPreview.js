@@ -30,6 +30,10 @@ const StyledLabel = styled('label')(({ theme }) => ({
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
+  '&:hover': {
+    opacity: 0.72,
+    cursor: 'pointer',
+  },
 }));
 
 const StyledImage = styled('img')(({ theme }) => ({
@@ -43,29 +47,33 @@ const StyledImage = styled('img')(({ theme }) => ({
 }));
 
 // ----------------------------------------------------------------------
-Upload.propTypes = {
-  image: PropTypes.object,
+ThumbnailPreview.propTypes = {
+  image: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
   setImage: PropTypes.func,
 };
 
-export default function Upload({ image, setImage }) {
+export default function ThumbnailPreview({ image, setImage }) {
   const [avatar, setAvatar] = useState(null);
 
+  // eslint-disable-next-line consistent-return
   useEffect(() => {
     if (!image) {
       setAvatar(null);
+    } else if (typeof image === 'string') {
+      setAvatar({
+        preview: image,
+      });
     } else {
-      setAvatar(image);
+      setAvatar({
+        preview: URL.createObjectURL(image),
+      });
+      return () => URL.revokeObjectURL(avatar.preview);
     }
-    // eslint-disable-next-line consistent-return
-    return () => avatar && URL.revokeObjectURL(avatar.preview);
-  }, [image, avatar]);
+  }, [image]);
 
   const handleChangeImage = (e) => {
     const file = e.target.files[0];
     setImage(file);
-    file.preview = URL.createObjectURL(file);
-    setAvatar(file);
   };
 
   return (

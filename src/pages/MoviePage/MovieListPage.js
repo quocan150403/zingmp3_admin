@@ -1,20 +1,15 @@
 import { Helmet } from 'react-helmet-async';
-import { filter } from 'lodash';
 import { sentenceCase } from 'change-case';
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 // @mui
 import {
   Card,
   Table,
   Stack,
-  Paper,
-  Avatar,
   Button,
-  Popover,
   Checkbox,
   TableRow,
-  MenuItem,
   TableBody,
   TableCell,
   Container,
@@ -23,13 +18,29 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
+// Toast
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 // components
 import Label from '../../components/label';
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
+
+import { fDate } from '../../utils/formatTime';
+
+import { movieApi } from '../../api';
+import {
+  NoData,
+  ModalTable,
+  NoSearchData,
+  PopoverMenu,
+  TableListHead,
+  applySortFilter,
+  getComparator,
+  TableListToolbarNew,
+} from '../../components/table';
 // mock
-import MOVIELIST from '../../_mock/movie';
-import { TableListHead, TableListToolbar } from '../../components/table';
+// import MOVIELIST from '../../_mock/movie';
 
 // ----------------------------------------------------------------------
 
@@ -38,44 +49,15 @@ const TABLE_HEAD = [
   { id: 'rating', label: 'Đánh giá', alignRight: false },
   { id: 'genre', label: 'Thể loại', alignRight: false },
   { id: 'releaseDate', label: 'Ngày phát hành', alignRight: false },
-  { id: 'type', label: 'Loại', alignRight: false },
-
+  { id: 'isSeries', label: 'Loại phim', alignRight: false },
+  { id: 'type', label: 'Trả phí', alignRight: false },
   { id: 'status', label: 'Trạng thái', alignRight: false },
   { id: '' },
 ];
 
 // ----------------------------------------------------------------------
 
-function descendingComparator(a, b, orderBy) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-function getComparator(order, orderBy) {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-function applySortFilter(array, comparator, query) {
-  const stabilizedThis = array.map((el, index) => [el, index]);
-  stabilizedThis.sort((a, b) => {
-    const order = comparator(a[0], b[0]);
-    if (order !== 0) return order;
-    return a[1] - b[1];
-  });
-  if (query) {
-    return filter(array, (_data) => _data.name.toLowerCase().indexOf(query.toLowerCase()) !== -1);
-  }
-  return stabilizedThis.map((el) => el[0]);
-}
-
-export default function MOVIEListPage() {
+export default function MovieListPage() {
   const [open, setOpen] = useState(null);
   const [page, setPage] = useState(0);
   const [order, setOrder] = useState('asc');
@@ -84,8 +66,51 @@ export default function MOVIEListPage() {
   const [filterName, setFilterName] = useState('');
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
+  const navigate = useNavigate();
+  const [openModalDelete, setOpenModalDelete] = useState(false);
+  const [movieList, setMovieList] = useState([]);
+  const [idRow, setIdRow] = useState('');
+
+  useEffect(() => {
+    const fetchGenreList = async () => {
+      try {
+        const response = await movieApi.getAll();
+        setMovieList(response);
+        console.log('Fetch genre list successfully: ', response);
+      } catch (error) {
+        console.log('Failed to fetch genre list: ', error);
+      }
+    };
+    fetchGenreList();
+  }, []);
+
+  const handleEditRow = () => {
+    navigate(`/dashboard/movie/edit/${idRow}`);
+  };
+
+  const handleDeleteRow = async () => {
+    setOpenModalDelete(false);
+    setOpen(null);
+
+    try {
+      await toast.promise(movieApi.delete(idRow), {
+        pending: 'Đang xóa phim...',
+        success: 'Xóa phim thành công!',
+        error: 'Xóa phim thất bại!',
+      });
+      setMovieList(movieList.filter((genre) => genre._id !== idRow));
+      console.log('Delete genre successfully: ', idRow);
+    } catch (error) {
+      console.log('Failed to delete genre: ', error);
+    }
+  };
+
+  const handleDeleteAllRows = async () => {};
+
+  // Default: sort by name, ascending
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
+    setIdRow(event.currentTarget.value);
   };
 
   const handleCloseMenu = () => {
@@ -100,7 +125,7 @@ export default function MOVIEListPage() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = MOVIELIST.map((n) => n.name);
+      const newSelecteds = movieList.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -136,9 +161,9 @@ export default function MOVIEListPage() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - MOVIELIST.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - movieList.length) : 0;
 
-  const filteredList = applySortFilter(MOVIELIST, getComparator(order, orderBy), filterName);
+  const filteredList = applySortFilter(movieList, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredList.length && !!filterName;
 
@@ -161,7 +186,7 @@ export default function MOVIEListPage() {
         </Stack>
 
         <Card>
-          <TableListToolbar
+          <TableListToolbarNew
             numSelected={selected.length}
             filterName={filterName}
             onFilterName={handleFilterByName}
@@ -175,37 +200,43 @@ export default function MOVIEListPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={MOVIELIST.length}
+                  rowCount={movieList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, trailerUrl, name, rating, genre, releaseDate, type, status } = row;
-                    const selectedList = selected.indexOf(name) !== -1;
+                    const { _id, thumbnailUrl, title, rating, genres, releaseDate, isSeries, type, status } = row;
+                    const selectedList = selected.indexOf(title) !== -1;
 
                     return (
-                      <TableRow hover key={id} tabIndex={-1} role="checkbox" selected={selectedList}>
+                      <TableRow hover key={_id} tabIndex={-1} role="checkbox" selected={selectedList}>
                         <TableCell padding="checkbox">
-                          <Checkbox checked={selectedList} onChange={(event) => handleClick(event, name)} />
+                          <Checkbox checked={selectedList} onChange={(event) => handleClick(event, title)} />
                         </TableCell>
 
                         <TableCell component="th" scope="row" padding="none">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={trailerUrl} />
+                            <img style={{ height: 40, borderRadius: '4px' }} alt={title} src={thumbnailUrl} />
                             <Typography variant="subtitle2" noWrap>
-                              {name}
+                              {title}
                             </Typography>
                           </Stack>
                         </TableCell>
 
                         <TableCell align="left">{rating}</TableCell>
-                        <TableCell align="left">{genre}</TableCell>
-                        <TableCell align="left">{releaseDate}</TableCell>
+                        <TableCell align="left">{genres.map((item) => `${item.name} `)}</TableCell>
+                        <TableCell align="left">{fDate(releaseDate)}</TableCell>
 
                         <TableCell align="left">
-                          <Label color={(type === 'phim lẻ' && 'secondary') || 'success'}>{sentenceCase(type)}</Label>
+                          <Label color={(isSeries && 'secondary') || 'warning'}>
+                            {(isSeries && 'series') || 'movie'}
+                          </Label>
+                        </TableCell>
+
+                        <TableCell align="left">
+                          <Label color={(type === 'free' && 'secondary') || 'warning'}>{sentenceCase(type)}</Label>
                         </TableCell>
 
                         <TableCell align="left">
@@ -213,7 +244,7 @@ export default function MOVIEListPage() {
                         </TableCell>
 
                         <TableCell align="right">
-                          <IconButton size="large" color="inherit" onClick={handleOpenMenu}>
+                          <IconButton size="large" color="inherit" onClick={handleOpenMenu} value={_id}>
                             <Iconify icon={'eva:more-vertical-fill'} />
                           </IconButton>
                         </TableCell>
@@ -227,29 +258,8 @@ export default function MOVIEListPage() {
                   )}
                 </TableBody>
 
-                {isNotFound && (
-                  <TableBody>
-                    <TableRow>
-                      <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
-                        <Paper
-                          sx={{
-                            textAlign: 'center',
-                          }}
-                        >
-                          <Typography variant="h6" paragraph>
-                            Không tìm thấy thể loại
-                          </Typography>
-
-                          <Typography variant="body2">
-                            Không có kết quả nào cho
-                            <strong>&quot;{filterName}&quot;</strong>.
-                            <br /> Thử kiểm tra lỗi chính tả hoặc sử dụng từ khóa chung hơn.
-                          </Typography>
-                        </Paper>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                )}
+                {movieList.length <= 0 && <NoData nameTable="phim" sx={{ py: 3 }} />}
+                {isNotFound && <NoSearchData nameSearch={filterName} />}
               </Table>
             </TableContainer>
           </Scrollbar>
@@ -257,7 +267,7 @@ export default function MOVIEListPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={MOVIELIST.length}
+            count={movieList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -266,34 +276,21 @@ export default function MOVIEListPage() {
         </Card>
       </Container>
 
-      <Popover
-        open={Boolean(open)}
-        anchorEl={open}
-        onClose={handleCloseMenu}
-        anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        PaperProps={{
-          sx: {
-            p: 1,
-            width: 140,
-            '& .MuiMenuItem-root': {
-              px: 1,
-              typography: 'body2',
-              borderRadius: 0.75,
-            },
-          },
-        }}
-      >
-        <MenuItem>
-          <Iconify icon={'eva:edit-fill'} sx={{ mr: 2 }} />
-          Sửa
-        </MenuItem>
+      <ToastContainer />
+      <PopoverMenu
+        open={open}
+        onClosePopover={() => setOpen(null)}
+        onClickBtnDelete={() => setOpenModalDelete(true)}
+        onClickBtnEdit={handleEditRow}
+      />
 
-        <MenuItem sx={{ color: 'error.main' }}>
-          <Iconify icon={'eva:trash-2-outline'} sx={{ mr: 2 }} />
-          Xóa
-        </MenuItem>
-      </Popover>
+      <ModalTable
+        open={openModalDelete}
+        onClose={() => setOpenModalDelete(false)}
+        onConfirm={handleDeleteRow}
+        title="Xóa phim"
+        content="Bạn có chắc chắn muốn xóa phim này?"
+      />
     </>
   );
 }

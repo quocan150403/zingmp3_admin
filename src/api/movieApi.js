@@ -14,7 +14,12 @@ const genreApi = {
         'Content-Type': 'multipart/form-data',
       },
     }),
-  edit: (id, data) => axiosClient.put(`${url}/update/${id}`, data),
+  edit: (id, data) =>
+    axiosClient.put(`${url}/update/${id}`, data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
   delete: (id) => axiosClient.delete(`${url}/delete/${id}`),
   deleteMany: (ids) => axiosClient.post(`${url}/delete-many`, ids),
   restore: (id) => axiosClient.patch(`${url}/restore/${id}`),

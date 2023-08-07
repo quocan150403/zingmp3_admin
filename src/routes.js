@@ -10,7 +10,7 @@ import ProductsPage from './pages/ProductsPage';
 import DashboardAppPage from './pages/DashboardAppPage';
 import { GenreAddPage, GenreListPage, GenreEditPage } from './pages/GenrePage';
 import { AgeGroupAddPage, AgeGroupListPage, AgeGroupEditPage } from './pages/AgeGroupPage';
-import { MovieAddPage, MovieListPage } from './pages/MoviePage';
+import { MovieAddPage, MovieListPage, MovieEditPage, MovieTrashPage } from './pages/MoviePage';
 import { ArtistAddPage, ArtistListPage } from './pages/ArtistPage';
 import { UserAddPage, UserListPage } from './pages/UserPage';
 import { SubscriptionAddPage, SubscriptionListPage } from './pages/SubscriptionPage';
@@ -29,10 +29,12 @@ export default function Router() {
         { path: 'user', element: <UserListPage /> },
         { path: 'user/add', element: <UserAddPage /> },
         { path: 'genre', element: <GenreListPage /> },
+        { path: 'movie', element: <MovieListPage /> },
         { path: 'genre/add', element: <GenreAddPage /> },
         { path: 'genre/edit/:id', element: <GenreEditPage /> },
-        { path: 'movie', element: <MovieListPage /> },
+        { path: 'movie/trash', element: <MovieTrashPage /> },
         { path: 'movie/add', element: <MovieAddPage /> },
+        { path: 'movie/edit/:id', element: <MovieEditPage /> },
         { path: 'age-group', element: <AgeGroupListPage /> },
         { path: 'age-group/add', element: <AgeGroupAddPage /> },
         { path: 'age-group/edit/:id', element: <AgeGroupEditPage /> },
