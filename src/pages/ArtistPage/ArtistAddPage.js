@@ -1,5 +1,5 @@
 import { Helmet } from 'react-helmet-async';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 // @mui
 import {
   Card,
@@ -451,7 +451,7 @@ const COUNTRIES = [
   { code: 'ZW', label: 'Zimbabwe', phone: '263' },
 ];
 
-const JOBS = ['Actor', 'Director', 'Producer'];
+const JOBS = ['Diễn viên', 'Đạo diễn', 'Nhà sản xuất', 'Biên kịch'];
 
 // ----------------------------------------------------------------------
 export default function ArtistAddPage() {

@@ -123,7 +123,7 @@ export default function TableListToolbarNew({ numSelected, filterName, onFilterN
       }}
     >
       <StyleTabs>
-        <Tabs sx={{ height: '48px' }} textColor="secondary" value={value} onChange={handleChange}>
+        <Tabs textColor="secondary" value={value} onChange={handleChange}>
           <Tab value="one" label="Tất cả" icon={<Iconify icon="eva:home-fill" />} iconPosition="start" />
           <Tab value="two" label="Phim lẻ" icon={<Iconify icon="eva:film-fill" />} iconPosition="start" />
           <Tab value="three" label="Phim bộ" icon={<Iconify icon="eva:film-outline" />} iconPosition="start" />
