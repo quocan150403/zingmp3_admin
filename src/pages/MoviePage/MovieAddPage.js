@@ -52,8 +52,9 @@ const TAGS = [
 export default function MovieAddPage() {
   const [genreList, setGenreList] = useState([]);
   const [ageGroupList, setAgeGroupList] = useState([]);
-  const [castList, setCastList] = useState([]);
-  const [directorList, setDirectorList] = useState([]);
+  const [artistList, setArtistList] = useState([]);
+  // const [castList, setCastList] = useState([]);
+  // const [directorList, setDirectorList] = useState([]);
   const [countryList, setCountryList] = useState([]);
 
   const [genres, setGenres] = useState([]);
@@ -101,7 +102,7 @@ export default function MovieAddPage() {
     const fetchCountryList = async () => {
       try {
         const response = await countryApi.getAll();
-        setCountryList(response.map((item) => ({ _id: item._id, name: item.name, slug: item.slug, code: item.code })));
+        setCountryList(response);
       } catch (error) {
         console.log(error);
       }
@@ -113,16 +114,7 @@ export default function MovieAddPage() {
     const fetchArtistList = async () => {
       try {
         const response = await artistApi.getAll();
-        setCastList(
-          response
-            .filter((item) => item.role === 'Actor')
-            .map((item) => ({ _id: item._id, name: item.name, slug: item.slug }))
-        );
-        setDirectorList(
-          response
-            .filter((item) => item.role === 'Director')
-            .map((item) => ({ _id: item._id, name: item.name, slug: item.slug }))
-        );
+        setArtistList(response.map((item) => ({ _id: item._id, name: item.name, slug: item.slug })));
       } catch (error) {
         console.log(error);
       }
@@ -294,12 +286,47 @@ export default function MovieAddPage() {
               </Stack>
 
               <Stack spacing={2} mb={3} direction="row" justifyContent="space-between" width="100%">
+                {/* <Autocomplete
+                  id="cast"
+                  fullWidth
+                  freeSolo
+                  multiple
+                  limitTags={5}
+                  options={artistList.map((option) => option.name)}
+                  // getOptionLabel={(option) => {
+                  //   if (typeof option === 'string') {
+                  //     return option;
+                  //   }
+                  //   if (option.inputValue) {
+                  //     return option.inputValue;
+                  //   }
+                  //   return option.name;
+                  // }}
+                  isOptionEqualToValue={(option, value) => option._id === value._id}
+                  onChange={(event, newValue) => setCast(newValue)}
+                  onInputChange={(event, newInputValue) => {
+                    setCast(newInputValue);
+                  }}
+                  value={cast}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip
+                        variant="filled"
+                        // label={option && option.name ? option.name : option}
+                        label={option}
+                        {...getTagProps({ index })}
+                      />
+                    ))
+                  }
+                  renderInput={(params) => <TextField {...params} label="Diễn viên" />}
+                /> */}
                 <Autocomplete
                   id="cast"
                   fullWidth
                   multiple
                   limitTags={2}
-                  options={castList.map((option) => option)}
+                  autoHighlight
+                  options={artistList.map((option) => option)}
                   getOptionLabel={(option) => option.name}
                   isOptionEqualToValue={(option, value) => option._id === value._id}
                   onChange={(event, newValue) => setCast(newValue)}
@@ -310,7 +337,7 @@ export default function MovieAddPage() {
                   fullWidth
                   multiple
                   limitTags={2}
-                  options={directorList.map((option) => option)}
+                  options={artistList.map((option) => option)}
                   getOptionLabel={(option) => option.name}
                   isOptionEqualToValue={(option, value) => option._id === value._id}
                   onChange={(event, newValue) => setDirectors(newValue)}
@@ -332,8 +359,8 @@ export default function MovieAddPage() {
                       <img
                         loading="lazy"
                         width="20"
-                        src={`https://flagcdn.com/w20/${option.code.toLowerCase()}.png`}
-                        // srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase()}.png 2x`}
+                        src={`https://flagcdn.com/w20/${option.code.toLowerCase().trim()}.png`}
+                        srcSet={`https://flagcdn.com/w40/${option.code.toLowerCase().trim()}.png 2x`}
                         alt={option.code}
                       />
                       {option.name} ({option.code}) +{option.telephone}

@@ -67,7 +67,7 @@ export default function ThumbnailPreview({ image, setImage }) {
       setAvatar({
         preview: URL.createObjectURL(image),
       });
-      return () => URL.revokeObjectURL(avatar.preview);
+      return () => avatar && URL.revokeObjectURL(avatar.preview);
     }
   }, [image]);
 
