@@ -69,6 +69,7 @@ export default function MovieTrashPage() {
 
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [movieList, setMovieList] = useState([]);
+  const [idRemove, setIdRemove] = useState('');
 
   useEffect(() => {
     const fetchGenreList = async () => {
@@ -96,7 +97,7 @@ export default function MovieTrashPage() {
     }
   };
   const handleForceDelete = async (e) => {
-    const id = e.currentTarget.value;
+    const id = idRemove;
     setOpenModalDelete(false);
 
     try {
@@ -245,7 +246,14 @@ export default function MovieTrashPage() {
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="Xoá vĩnh viễn" placement="top">
-                              <IconButton onClick={() => setOpenModalDelete(true)} color="error" value={_id}>
+                              <IconButton
+                                onClick={(e) => {
+                                  setOpenModalDelete(true);
+                                  setIdRemove(e.currentTarget.value);
+                                }}
+                                color="error"
+                                value={_id}
+                              >
                                 <Iconify icon={'eva:trash-2-fill'} />
                               </IconButton>
                             </Tooltip>

@@ -247,13 +247,13 @@ export default function MovieEditPage() {
   return (
     <>
       <Helmet>
-        <title> Thêm phim | BeeCine </title>
+        <title> Sửa phim | BeeCine </title>
       </Helmet>
 
       <Container>
         <ToastContainer />
         <Typography variant="h4" mb={5}>
-          Thêm phim
+          Sửa phim
         </Typography>
 
         {/* Infomation */}
@@ -593,7 +593,7 @@ export default function MovieEditPage() {
               />
 
               <Button onClick={handleSubmit} size="large" variant="contained" color="inherit">
-                Thêm phim mới
+                Lưu
               </Button>
             </Stack>
           </Grid>

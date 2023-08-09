@@ -266,7 +266,7 @@ export default function MovieAddPage() {
                   id="age-group"
                   fullWidth
                   options={ageGroupList.map((option) => option)}
-                  getOptionLabel={(option) => option.name}
+                  getOptionLabel={(option) => `${option.name} - ${option.minimum} tuổi`}
                   isOptionEqualToValue={(option, value) => option._id === value._id}
                   onChange={(event, newValue) => setAge(newValue.minimum)}
                   renderInput={(params) => <TextField {...params} label="Độ tuổi" />}
