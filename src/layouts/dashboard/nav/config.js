@@ -22,7 +22,7 @@ const navConfig = [
   },
   {
     title: 'Banner',
-    path: '/dashboard/banner',
+    path: '/dashboard/gallery',
     icon: <Iconify icon={'eva:monitor-outline'} width={24} height={24} />,
   },
   {
@@ -31,39 +31,14 @@ const navConfig = [
     icon: <Iconify icon={'eva:grid-outline'} width={24} height={24} />,
   },
   {
-    title: 'Phim',
-    path: '/dashboard/movie',
-    icon: <Iconify icon={'eva:film-outline'} width={24} height={24} />,
+    title: 'Bài hát',
+    path: '/dashboard/song',
+    icon: <Iconify icon={'eva:music-outline'} width={24} height={24} />,
   },
   {
-    title: 'Diễn viên và đạo diễn',
+    title: 'Nghệ sĩ',
     path: '/dashboard/artist',
     icon: <Iconify icon={'eva:people-outline'} width={24} height={24} />,
-  },
-  {
-    title: 'Quốc gia',
-    path: '/dashboard/country',
-    icon: <Iconify icon={'eva:flag-outline'} width={24} height={24} />,
-  },
-  {
-    title: 'Gói đăng ký',
-    path: '/dashboard/subscription',
-    icon: <Iconify icon={'eva:credit-card-outline'} width={24} height={24} />,
-  },
-  {
-    title: 'Hóa đơn',
-    path: '/dashboard/bill',
-    icon: <Iconify icon={'eva:file-text-outline'} width={24} height={24} />,
-  },
-  {
-    title: 'Nhóm tuổi',
-    path: '/dashboard/age-group',
-    icon: <Iconify icon={'eva:award-outline'} width={24} height={24} />,
-  },
-  {
-    title: 'Bình luận',
-    path: '/dashboard/comment',
-    icon: <Iconify icon={'eva:message-square-outline'} width={24} height={24} />,
   },
   {
     title: 'user',

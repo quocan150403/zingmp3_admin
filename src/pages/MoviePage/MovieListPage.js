@@ -170,7 +170,7 @@ export default function MovieListPage() {
   return (
     <>
       <Helmet>
-        <title> Danh Sách Phim | BeeCine </title>
+        <title> Danh Sách Phim | ZingMp3 </title>
       </Helmet>
 
       <Container>

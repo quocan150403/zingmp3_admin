@@ -93,7 +93,7 @@ export default function MovieTrashPage() {
       });
       setMovieList(movieList.filter((genre) => genre._id !== id));
     } catch (error) {
-      console.log('Failed to restore genre: ', error);
+      console.log('Failed to restore: ', error);
     }
   };
   const handleForceDelete = async (e) => {
@@ -165,7 +165,7 @@ export default function MovieTrashPage() {
   return (
     <>
       <Helmet>
-        <title> Danh Sách Phim Đã Xóa | BeeCine </title>
+        <title> Danh Sách Phim Đã Xóa | ZingMp3 </title>
       </Helmet>
 
       <Container>

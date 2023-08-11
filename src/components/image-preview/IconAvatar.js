@@ -1,4 +1,4 @@
-export default function Icon({ ...props }) {
+export default function IconAvatar(props) {
   return (
     <svg
       {...props}

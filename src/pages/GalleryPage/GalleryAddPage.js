@@ -1,45 +1,26 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 // @mui
 import { Card, Typography, TextField, FormControlLabel, Switch, Container, Stack, Button, Grid } from '@mui/material';
 // toast
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-import { genreApi } from '../../api';
+import { galleryApi } from '../../api';
 import { ThumbnailPreview } from '../../components/image-preview';
 
 // ----------------------------------------------------------------------
-export default function GenreEditPage() {
+export default function GalleryAddPage() {
   const [status, setStatus] = useState(true);
-  const [name, setName] = useState('');
-  const [row, setRow] = useState(0);
+  const [link, setLink] = useState('');
+  const [order, setOrder] = useState(0);
   const [imageUrl, setImageUrl] = useState('');
-
-  const { id } = useParams();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await genreApi.getById(id);
-        setName(res.name);
-        setRow(res.row);
-        setImageUrl(res.imageUrl);
-        setStatus(res.status);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchData();
-  }, [id]);
 
   const handleFormSubmit = async () => {
     try {
       const formData = createFormData();
-      await updateData(formData);
-      navigate('/dashboard/genre');
+      await addData(formData);
+      resetForm();
     } catch (error) {
       console.log(error);
     }
@@ -47,56 +28,59 @@ export default function GenreEditPage() {
 
   const createFormData = () => {
     const formData = new FormData();
-    formData.append('name', name);
-    formData.append('row', row);
+    formData.append('link', link);
+    formData.append('order', order);
     formData.append('imageUrl', imageUrl);
-    formData.append('status', status);
     return formData;
   };
 
-  const updateData = async (formData) => {
-    await toast.promise(genreApi.update(id, formData), {
-      pending: 'Đang cập nhật thể loại...',
-      success: 'Cập nhật thể loại thành công!',
-      error: 'Cập nhật thể loại thất bại!',
+  const addData = async (formData) => {
+    await toast.promise(galleryApi.add(formData), {
+      pending: 'Đang thêm banner...',
+      success: 'Thêm banner thành công!',
+      error: 'Thêm banner thất bại!',
     });
+  };
+
+  const resetForm = () => {
+    setLink('');
+    setOrder(0);
+    setImageUrl('');
   };
 
   return (
     <>
       <Helmet>
-        <title> Cập Nhật Thể Loại | ZingMp3 </title>
+        <title> Thêm Banner | ZingMp3 </title>
       </Helmet>
 
       <Container>
         <ToastContainer />
         <Typography variant="h4" mb={5}>
-          Cập nhật thể loại
+          Thêm banner
         </Typography>
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
             <Card sx={{ p: 3 }}>
               <Stack spacing={3} mb={3} width="100%">
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <TextField
-                    fullWidth
-                    label="Tên thể loại"
-                    variant="outlined"
-                    name="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Số hàng"
-                    variant="outlined"
-                    name="row"
-                    type="number"
-                    value={row}
-                    onChange={(e) => setRow(e.target.value)}
-                  />
-                </Stack>
+                <TextField
+                  fullWidth
+                  label="Đường dẫn"
+                  variant="outlined"
+                  name="link"
+                  value={link}
+                  onChange={(e) => setLink(e.target.value)}
+                />
+                <TextField
+                  fullWidth
+                  label="Thứ tự"
+                  variant="outlined"
+                  name="order"
+                  type="number"
+                  value={order}
+                  onChange={(e) => setOrder(e.target.value)}
+                />
                 <Stack>
                   <Typography variant="subtitle2" mb={2}>
                     Hình ảnh
@@ -118,7 +102,7 @@ export default function GenreEditPage() {
                 />
 
                 <Button onClick={handleFormSubmit} size="large" variant="contained" color="inherit">
-                  Lưu thể loại
+                  Thêm Banner
                 </Button>
               </Stack>
             </Card>

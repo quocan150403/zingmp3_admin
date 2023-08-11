@@ -24,7 +24,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 // Components
 import { DatePicker } from '@mui/x-date-pickers';
-import { ThumbnailPreview } from '../../components/ImagePreview';
+import { ThumbnailPreview } from '../../components/image-preview';
 // API
 import { movieApi, episodeApi, genreApi, ageGroupApi, artistApi, countryApi } from '../../api';
 
@@ -247,7 +247,7 @@ export default function MovieEditPage() {
   return (
     <>
       <Helmet>
-        <title> Sửa phim | BeeCine </title>
+        <title> Sửa phim | ZingMp3 </title>
       </Helmet>
 
       <Container>

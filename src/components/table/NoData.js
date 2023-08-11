@@ -7,19 +7,25 @@ import Iconify from '../iconify/Iconify';
 // ----------------------------------------------------------------------
 NotData.propTypes = {
   nameTable: PropTypes.string,
+  isTrash: PropTypes.bool,
 };
 
-export default function NotData({ nameTable }) {
-  const navigate = useNavigate();
+export default function NotData({ nameTable, isTrash = false }) {
   return (
     <TableBody>
       <TableRow>
         <TableCell align="center" colSpan={6} sx={{ py: 3 }}>
           <Stack direction="column" alignItems="center" spacing={1}>
             <Iconify icon={'eva:inbox-fill'} sx={{ width: 60, height: 60, color: 'text.disabled' }} />
-            <Typography variant="h6" paragraph>
-              Không có {nameTable} nào <Link to={'add'}>tạo mới</Link>
-            </Typography>
+            {isTrash ? (
+              <Typography variant="h6" paragraph>
+                Thùng rác trống
+              </Typography>
+            ) : (
+              <Typography variant="h6" paragraph>
+                Không có {nameTable} nào <Link to={'add'}>tạo mới</Link>
+              </Typography>
+            )}
           </Stack>
         </TableCell>
       </TableRow>

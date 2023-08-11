@@ -45,7 +45,7 @@ Label.propTypes = {
   children: PropTypes.node,
   startIcon: PropTypes.node,
   variant: PropTypes.oneOf(['filled', 'outlined', 'ghost', 'soft']),
-  color: PropTypes.oneOf(['default', 'primary', 'secondary', 'info', 'success', 'warning', 'error']),
+  color: PropTypes.oneOf(['default', 'primary', 'secondary', 'info', 'success', 'warning', 'error', 'none']),
 };
 
 export default Label;

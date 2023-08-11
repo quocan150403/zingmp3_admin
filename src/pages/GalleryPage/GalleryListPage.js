@@ -17,7 +17,6 @@ import {
   TableContainer,
   TablePagination,
   Tooltip,
-  Avatar,
 } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
 // Hooks
@@ -28,14 +27,14 @@ import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
 import { TableListHead, TableListToolbar, ModalTable, NoData, NoSearchData, PopoverMenu } from '../../components/table';
 
-import { genreApi } from '../../api';
+import { galleryApi } from '../../api';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'imageUrl', label: 'Hình', minWidth: 200 },
-  { id: 'name', label: 'Tên', minWidth: 250 },
-  { id: 'row', label: 'Hàng', minWidth: 250 },
+  { id: 'imageUrl', label: 'Hình', minWidth: 150 },
+  { id: 'order', label: 'Thứ tự', minWidth: 200 },
+  { id: 'link', label: 'Liên kết', minWidth: 500 },
   { id: 'status', label: 'Trạng thái', minWidth: 300 },
   { id: '' },
 ];
@@ -49,12 +48,12 @@ const TABS = [
 
 // ----------------------------------------------------------------------
 
-export default function GenreListPage() {
+export default function GalleryListPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState(1);
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
-  const [genreList, setGenreList] = useState([]);
+  const [galleryList, setGalleryList] = useState([]);
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
@@ -78,17 +77,17 @@ export default function GenreListPage() {
     handleFilterByName,
     applySortFilter,
     getComparator,
-  } = useTableManagement(genreList);
+  } = useTableManagement(galleryList);
 
   // Call Api
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await genreApi.getAll();
+        const response = await galleryApi.getAll();
         const items = response.filter((item) => !item.deleted);
 
         setOriginalData(response);
-        setGenreList(items);
+        setGalleryList(items);
         updateTabNumbers(response);
       } catch (error) {
         console.log(error);
@@ -100,7 +99,7 @@ export default function GenreListPage() {
   // Reset Api
   const resetData = async () => {
     try {
-      const response = await genreApi.getAll();
+      const response = await galleryApi.getAll();
       setOriginalData(response);
       updateTabNumbers(response);
     } catch (error) {
@@ -132,19 +131,19 @@ export default function GenreListPage() {
   // Change value by tab
   const handleFilterStatus = (newStatus) => {
     if (newStatus === 1) {
-      setGenreList(originalData.filter((item) => !item.deleted));
+      setGalleryList(originalData.filter((item) => !item.deleted));
     } else if (newStatus === 2) {
-      setGenreList(originalData.filter((item) => item.status && !item.deleted));
+      setGalleryList(originalData.filter((item) => item.status && !item.deleted));
     } else if (newStatus === 3) {
-      setGenreList(originalData.filter((item) => !item.status && !item.deleted));
+      setGalleryList(originalData.filter((item) => !item.status && !item.deleted));
     } else if (newStatus === 4) {
-      setGenreList(originalData.filter((item) => item.deleted));
+      setGalleryList(originalData.filter((item) => item.deleted));
     }
   };
 
   // Handle navigate edit page
   const handleEditRow = () => {
-    navigate(`/dashboard/genre/edit/${idRow}`);
+    navigate(`/dashboard/gallery/edit/${idRow}`);
   };
 
   // Handle delete
@@ -153,12 +152,12 @@ export default function GenreListPage() {
     setOpen(null);
 
     try {
-      await toast.promise(genreApi.delete(idRow), {
-        pending: 'Đang xóa thể loại...',
-        success: 'Xóa thể loại thành công!',
-        error: 'Xóa thể loại thất bại!',
+      await toast.promise(galleryApi.delete(idRow), {
+        pending: 'Đang xóa banner...',
+        success: 'Xóa banner thành công!',
+        error: 'Xóa banner thất bại!',
       });
-      setGenreList(genreList.filter((genre) => genre._id !== idRow));
+      setGalleryList(galleryList.filter((genre) => genre._id !== idRow));
     } catch (error) {
       console.log('Failed to delete: ', error);
     }
@@ -169,12 +168,12 @@ export default function GenreListPage() {
   const handleDeleteManyRows = async () => {
     setOpenModalDeleteMany(false);
     try {
-      await toast.promise(genreApi.delete(selected), {
-        pending: 'Đang xóa thể loại...',
-        success: 'Xóa thể loại thành công!',
-        error: 'Xóa thể loại thất bại!',
+      await toast.promise(galleryApi.delete(selected), {
+        pending: 'Đang xóa banner...',
+        success: 'Xóa banner thành công!',
+        error: 'Xóa banner thất bại!',
       });
-      setGenreList(genreList.filter((genre) => !selected.includes(genre._id)));
+      setGalleryList(galleryList.filter((genre) => !selected.includes(genre._id)));
       setSelected([]);
     } catch (error) {
       console.log('Failed to delete genre: ', error);
@@ -185,12 +184,12 @@ export default function GenreListPage() {
   // Handle restore
   const handleRestore = async (id) => {
     try {
-      await toast.promise(genreApi.restore(id), {
-        pending: 'Đang khôi phục thể loại...',
-        success: 'Khôi phục thể loại thành công!',
-        error: 'Khôi phục thể loại thất bại!',
+      await toast.promise(galleryApi.restore(id), {
+        pending: 'Đang khôi phục banner...',
+        success: 'Khôi phục banner thành công!',
+        error: 'Khôi phục banner thất bại!',
       });
-      setGenreList(genreList.filter((genre) => genre._id !== id));
+      setGalleryList(galleryList.filter((genre) => genre._id !== id));
     } catch (error) {
       console.log('Failed to restore: ', error);
     }
@@ -201,12 +200,12 @@ export default function GenreListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(genreApi.forceDelete(idRow), {
-        pending: 'Đang xóa thể loại...',
-        success: 'Xóa thể loại thành công!',
-        error: 'Xóa thể loại thất bại!',
+      await toast.promise(galleryApi.forceDelete(idRow), {
+        pending: 'Đang xóa banner...',
+        success: 'Xóa banner thành công!',
+        error: 'Xóa banner thất bại!',
       });
-      setGenreList(genreList.filter((genre) => genre._id !== idRow));
+      setGalleryList(galleryList.filter((genre) => genre._id !== idRow));
     } catch (error) {
       console.log('Failed to delete genre: ', error);
     }
@@ -225,26 +224,26 @@ export default function GenreListPage() {
     setOpenModalForceDelete(true);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - genreList.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - galleryList.length) : 0;
 
-  const filteredList = applySortFilter(genreList, getComparator(order, orderBy), filterName);
+  const filteredList = applySortFilter(galleryList, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredList.length && !!filterName;
 
   return (
     <>
       <Helmet>
-        <title> Danh Sách Thể Loại | ZingMp3 </title>
+        <title> Danh Sách banner | ZingMp3 </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Danh sách thể loại
+            Danh sách banner
           </Typography>
-          <Link to="/dashboard/genre/add">
+          <Link to="/dashboard/gallery/add">
             <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-              Thêm thể loại
+              Thêm banner
             </Button>
           </Link>
         </Stack>
@@ -268,14 +267,14 @@ export default function GenreListPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={genreList.length}
+                  rowCount={galleryList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
-                  {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((rowField) => {
-                    const { _id, imageUrl, name, row: rowName, status } = rowField;
+                  {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
+                    const { _id, imageUrl, link, order, status } = row;
                     const selectedList = selected.indexOf(_id) !== -1;
 
                     return (
@@ -295,13 +294,8 @@ export default function GenreListPage() {
                           />
                         </TableCell>
 
-                        <TableCell component="th">
-                          <Typography variant="subtitle2" noWrap>
-                            {name}
-                          </Typography>
-                        </TableCell>
-
-                        <TableCell align="left">{rowName}</TableCell>
+                        <TableCell align="left">{order}</TableCell>
+                        <TableCell align="left">{link}</TableCell>
 
                         <TableCell align="left">
                           <Label color={(status && 'success') || 'error'}>{(status && 'active') || 'inactive'}</Label>
@@ -337,7 +331,7 @@ export default function GenreListPage() {
                   )}
                 </TableBody>
 
-                {genreList.length <= 0 && <NoData nameTable="thể loại" />}
+                {galleryList.length <= 0 && <NoData nameTable="banner" />}
                 {isNotFound && <NoSearchData nameSearch={filterName} />}
               </Table>
             </TableContainer>
@@ -346,7 +340,7 @@ export default function GenreListPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={genreList.length}
+            count={galleryList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -367,24 +361,24 @@ export default function GenreListPage() {
         open={openModalDelete}
         onClose={() => setOpenModalDelete(false)}
         onConfirm={handleDeleteRow}
-        title="Xóa thể loại"
-        content="Bạn có chắc chắn muốn xoá thể loại này?"
+        title="Xóa hình ảnh"
+        content="Bạn có chắc chắn muốn xoá hình ảnh này?"
       />
 
       <ModalTable
         open={openModalDeleteMany}
         onClose={() => setOpenModalDeleteMany(false)}
         onConfirm={handleDeleteManyRows}
-        title="Xóa thể loại đã chọn"
-        content="Bạn có chắc chắn muốn xoá các thể loại đã chọn?"
+        title="Xóa hình ảnh đã chọn"
+        content="Bạn có chắc chắn muốn xoá các hình ảnh đã chọn?"
       />
 
       <ModalTable
         open={openModalForceDelete}
         onClose={() => setOpenModalForceDelete(false)}
         onConfirm={handleForceDelete}
-        title="Xóa thể loại"
-        content="Hành động này sẽ xóa vĩnh viễn thể loại này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
+        title="Xóa hình ảnh"
+        content="Hành động này sẽ xóa vĩnh viễn hình ảnh này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
       />
     </>
   );

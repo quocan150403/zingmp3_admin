@@ -1,27 +1,56 @@
+import { useState } from 'react';
 import PropTypes from 'prop-types';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
-import { Toolbar, Tooltip, IconButton, Typography, OutlinedInput, InputAdornment } from '@mui/material';
+import { Tooltip, IconButton, Typography, OutlinedInput, InputAdornment, Stack, Tabs, Tab } from '@mui/material';
 // component
 import Iconify from '../iconify';
-
+import Label from '../label';
+// import TableFilter from './TableFilter';
 // ----------------------------------------------------------------------
 
-const StyledRoot = styled(Toolbar)(({ theme }) => ({
-  height: 96,
+const StyledRoot = styled('div')(({ theme }) => ({
+  height: '144px',
+  position: 'relative',
   display: 'flex',
   justifyContent: 'space-between',
-  padding: theme.spacing(0, 1, 0, 3),
+  padding: 0,
+}));
+
+const StyleTabs = styled('div')(({ theme }) => ({
+  width: '100%',
+  boxShadow: 'rgba(145, 158, 171, 0.08) 0px -2px 0px 0px inset',
+  borderRadius: theme.shape.borderRadius,
+
+  '& .MuiTabs-flexContainer': {
+    margin: '0 20px',
+  },
+
+  '& .MuiTab-root': {
+    minHeight: 48,
+    padding: '0 12px',
+    marginRight: '16px',
+    color: theme.palette.text.secondary,
+    textTransform: 'capitalize',
+    '&.Mui-selected': {
+      color: theme.palette.text.primary,
+    },
+  },
+
+  '& .MuiTabs-indicator': {
+    backgroundColor: theme.palette.text.primary,
+    height: 2.5,
+    borderRadius: '4px 4px 0 0',
+  },
 }));
 
 const StyledSearch = styled(OutlinedInput)(({ theme }) => ({
-  width: 240,
+  width: '100%',
   transition: theme.transitions.create(['box-shadow', 'width'], {
     easing: theme.transitions.easing.easeInOut,
     duration: theme.transitions.duration.shorter,
   }),
   '&.Mui-focused': {
-    width: 320,
     boxShadow: theme.customShadows.z8,
   },
   '& fieldset': {
@@ -30,54 +59,84 @@ const StyledSearch = styled(OutlinedInput)(({ theme }) => ({
   },
 }));
 
+const StyleOverplay = styled('div')(({ theme }) => ({
+  position: 'absolute',
+  left: 0,
+  right: 0,
+  width: '100%',
+  height: '100%',
+  color: theme.palette.primary.main,
+  padding: '20px',
+  backgroundColor: theme.palette.primary.lighter,
+}));
+
 // ----------------------------------------------------------------------
 
 TableListToolbar.propTypes = {
+  tabs: PropTypes.array,
+  status: PropTypes.number,
   numSelected: PropTypes.number,
   filterName: PropTypes.string,
   placeholder: PropTypes.string,
   onFilterName: PropTypes.func,
+  onDeleteAll: PropTypes.func,
+  onChangeStatus: PropTypes.func,
 };
 
-export default function TableListToolbar({ numSelected, filterName, onFilterName, placeholder, onDeleteAll }) {
+export default function TableListToolbar({
+  tabs,
+  status,
+  numSelected,
+  filterName,
+  onFilterName,
+  placeholder,
+  onDeleteAll,
+  onChangeStatus,
+}) {
   return (
-    <StyledRoot
-      sx={{
-        ...(numSelected > 0 && {
-          color: 'primary.main',
-          bgcolor: 'primary.lighter',
-        }),
-      }}
-    >
+    <StyledRoot>
       {numSelected > 0 ? (
-        <Typography component="div" variant="subtitle1">
-          {numSelected} Đã chọn
-        </Typography>
+        <StyleOverplay>
+          <Stack height="100%" width="100%" direction="row" alignItems="center" justifyContent="space-between">
+            <Typography component="div" variant="subtitle1">
+              {numSelected} Đã chọn
+            </Typography>
+            <Tooltip title="Delete">
+              <IconButton onClick={onDeleteAll}>
+                <Iconify icon="eva:trash-2-fill" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+        </StyleOverplay>
       ) : (
-        <StyledSearch
-          value={filterName}
-          onChange={onFilterName}
-          placeholder={placeholder}
-          startAdornment={
-            <InputAdornment position="start">
-              <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
-            </InputAdornment>
-          }
-        />
-      )}
-
-      {numSelected > 0 ? (
-        <Tooltip onClick={onDeleteAll} title="Delete">
-          <IconButton>
-            <Iconify icon="eva:trash-2-fill" />
-          </IconButton>
-        </Tooltip>
-      ) : (
-        <Tooltip title="Filter list">
-          <IconButton>
-            <Iconify icon="ic:round-filter-list" />
-          </IconButton>
-        </Tooltip>
+        <Stack width="100%">
+          <StyleTabs>
+            <Tabs textColor="secondary" value={status} onChange={onChangeStatus}>
+              {tabs.map((item, index) => (
+                <Tab key={index} {...item} icon={<Label color={item.color}>{item.number}</Label>} />
+              ))}
+            </Tabs>
+          </StyleTabs>
+          <Stack
+            spacing={1.5}
+            sx={{ padding: '20px' }}
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <StyledSearch
+              value={filterName}
+              onChange={onFilterName}
+              placeholder={placeholder}
+              startAdornment={
+                <InputAdornment position="start">
+                  <Iconify icon="eva:search-fill" sx={{ color: 'text.disabled', width: 20, height: 20 }} />
+                </InputAdornment>
+              }
+            />
+            {/* <TableFilter /> */}
+          </Stack>
+        </Stack>
       )}
     </StyledRoot>
   );

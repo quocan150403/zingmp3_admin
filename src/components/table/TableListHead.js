@@ -51,6 +51,9 @@ export default function TableListHead({
         </TableCell>
         {headLabel.map((headCell) => (
           <TableCell
+            sx={{
+              width: headCell.minWidth ?? 'auto',
+            }}
             key={headCell.id}
             align={headCell.alignRight ? 'right' : 'left'}
             sortDirection={orderBy === headCell.id ? order : false}

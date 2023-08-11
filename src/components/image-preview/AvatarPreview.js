@@ -1,7 +1,9 @@
+import { useEffect, useState } from 'react';
 import { styled } from '@mui/material/styles';
 import { Typography } from '@mui/material';
+import PropTypes from 'prop-types';
 
-import Icon from './Icon';
+import IconAvatar from './IconAvatar';
 
 // ----------------------------------------------------------------------
 const StyledRoot = styled('div')(({ theme }) => ({
@@ -36,6 +38,7 @@ const StyleBox = styled('div')(({ theme }) => ({
 }));
 
 const StyledLabel = styled('label')(({ theme }) => ({
+  position: 'relative',
   width: '100%',
   height: '100%',
   backgroundColor: 'rgba(145, 158, 171, 0.08)',
@@ -55,15 +58,53 @@ const StyledLabel = styled('label')(({ theme }) => ({
   },
 }));
 
-// ----------------------------------------------------------------------
+const StyledImage = styled('img')(({ theme }) => ({
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover',
+  borderRadius: '50%',
+  position: 'absolute',
+  top: 0,
+  left: 0,
+}));
 
-export default function Avatar({ image, setImage }) {
+// ----------------------------------------------------------------------
+AvatarPreview.propTypes = {
+  image: PropTypes.oneOfType([PropTypes.object, PropTypes.string]),
+  setImage: PropTypes.func,
+};
+
+export default function AvatarPreview({ image, setImage }) {
+  const [avatar, setAvatar] = useState(null);
+
+  // eslint-disable-next-line consistent-return
+  useEffect(() => {
+    if (!image) {
+      setAvatar(null);
+    } else if (typeof image === 'string') {
+      setAvatar({
+        preview: image,
+      });
+    } else {
+      setAvatar({
+        preview: URL.createObjectURL(image),
+      });
+      return () => avatar && URL.revokeObjectURL(avatar.preview);
+    }
+  }, [image]);
+
+  const handleChangeImage = (e) => {
+    const file = e.target.files[0];
+    setImage(file);
+  };
+
   return (
     <StyledRoot>
       <StyleBox>
         <StyledLabel>
-          <Icon width={32} height={32} />
-          <input type="file" name="image" onChange={(e) => setImage(e.target.files[0])} />
+          <IconAvatar width={32} height={32} />
+          {avatar && <StyledImage src={avatar.preview} alt="avatar" />}
+          <input hidden type="file" name="image" onChange={handleChangeImage} />
           <Typography variant="caption" sx={{ mt: 1 }}>
             Chọn ảnh
           </Typography>

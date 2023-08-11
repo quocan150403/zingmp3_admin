@@ -1,5 +1,6 @@
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import {
   Card,
@@ -49,7 +50,7 @@ const JOBS = [
 ];
 
 // ----------------------------------------------------------------------
-export default function ArtistAddPage() {
+export default function ArtistEditPage() {
   const [status, setStatus] = useState(true);
   const [name, setName] = useState('');
   const [stageName, setStageName] = useState('');
@@ -58,11 +59,32 @@ export default function ArtistAddPage() {
   const [roles, setRoles] = useState([]);
   const [avatarUrl, setAvatarUrl] = useState('');
 
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchGenre = async () => {
+      try {
+        const res = await artistApi.getById(id);
+        setName(res.name);
+        setStageName(res.stageName);
+        setBio(res.bio);
+        setGenres(res.genres);
+        setRoles(res.roles);
+        setStatus(res.status);
+        setAvatarUrl(res.avatarUrl);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchGenre();
+  }, [id]);
+
   const handleFormSubmit = async () => {
     try {
       const formData = createFormData();
-      await addData(formData);
-      resetForm();
+      await updateData(formData);
+      navigate('/dashboard/artist');
     } catch (error) {
       console.log(error);
     }
@@ -80,34 +102,24 @@ export default function ArtistAddPage() {
     return formData;
   };
 
-  const addData = async (formData) => {
-    await toast.promise(artistApi.add(formData), {
-      pending: 'Đang thêm nghệ sĩ...',
-      success: 'Thêm nghệ sĩ thành công!',
-      error: 'Thêm nghệ sĩ thất bại!',
+  const updateData = async (formData) => {
+    await toast.promise(artistApi.update(id, formData), {
+      pending: 'Đang cập nhật nghệ sĩ...',
+      success: 'Cập nhật nghệ sĩ thành công!',
+      error: 'Cập nhật nghệ sĩ thất bại!',
     });
-  };
-
-  const resetForm = () => {
-    setName('');
-    setStageName('');
-    setBio('');
-    setGenres([]);
-    setRoles([]);
-    setStatus(true);
-    setAvatarUrl('');
   };
 
   return (
     <>
       <Helmet>
-        <title> Thêm Nghệ Sĩ | ZingMp3 </title>
+        <title> Cập Nhật Nghệ Sĩ | ZingMp3 </title>
       </Helmet>
 
       <Container>
         <ToastContainer />
         <Typography variant="h4" mb={5}>
-          Thêm Nghệ Sĩ
+          Cập Nhật Nghệ Sĩ
         </Typography>
 
         <Grid container spacing={3}>
@@ -143,7 +155,7 @@ export default function ArtistAddPage() {
                     id="genres"
                     fullWidth
                     multiple
-                    limitTags={2}
+                    limitTags={3}
                     autoHighlight
                     options={GENGRES}
                     onChange={(event, newValue) => {
@@ -156,13 +168,14 @@ export default function ArtistAddPage() {
                     id="roles"
                     fullWidth
                     multiple
-                    limitTags={2}
+                    limitTags={3}
                     autoHighlight
                     options={JOBS}
+                    isOptionEqualToValue={(option, value) => option === value}
                     onChange={(event, newValue) => {
                       setRoles(newValue);
                     }}
-                    value={roles}
+                    value={roles.map((role) => role)}
                     renderInput={(params) => <TextField {...params} label="Nghề nghiệp" variant="outlined" />}
                   />
                 </Stack>
@@ -192,7 +205,7 @@ export default function ArtistAddPage() {
                 />
 
                 <Button onClick={handleFormSubmit} size="large" variant="contained" color="inherit">
-                  Thêm Nghệ Sĩ
+                  Cập nhật
                 </Button>
               </Stack>
             </Card>
