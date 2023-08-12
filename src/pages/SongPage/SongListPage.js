@@ -16,7 +16,6 @@ import {
   IconButton,
   TableContainer,
   TablePagination,
-  Avatar,
   Tooltip,
 } from '@mui/material';
 import { ToastContainer, toast } from 'react-toastify';
@@ -29,16 +28,17 @@ import Scrollbar from '../../components/scrollbar';
 import { TableListHead, TableListToolbar, ModalTable, NoData, NoSearchData, PopoverMenu } from '../../components/table';
 import { fDate, fHour } from '../../utils/formatTime';
 
-import { artistApi } from '../../api';
-import { renderArray } from '../../utils/formatOther';
+import { songApi } from '../../api';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'stageName', label: 'Thông tin nghệ sĩ' },
+  { id: 'name', label: 'Thông tin bài hát' },
   { id: 'create', label: 'Ngày tạo' },
-  { id: 'genres', label: 'Thể loại' },
-  { id: 'followers', label: 'lượt theo dõi' },
+  { id: 'artists', label: 'Ca sĩ trình bày' },
+  { id: 'composer', label: 'Sáng tác' },
+  { id: 'playCount', label: 'Lượt nghe' },
+  { id: 'favorites', label: 'Lượt yêu thích' },
   { id: 'status', label: 'Trạng thái' },
   { id: '' },
 ];
@@ -52,12 +52,12 @@ const TABS = [
 
 // ----------------------------------------------------------------------
 
-export default function ArtistListPage() {
+export default function SongListPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState(1);
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
-  const [artistList, setArtistList] = useState([]);
+  const [songList, setSongList] = useState([]);
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
@@ -81,17 +81,17 @@ export default function ArtistListPage() {
     handleFilterByName,
     applySortFilter,
     getComparator,
-  } = useTableManagement(artistList);
+  } = useTableManagement(songList);
 
   // Call Api
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await artistApi.getAll();
+        const response = await songApi.getAll();
+        console.log(response);
         const items = response.filter((item) => !item.deleted);
-
         setOriginalData(response);
-        setArtistList(items);
+        setSongList(items);
         updateTabNumbers(response);
       } catch (error) {
         console.log(error);
@@ -103,7 +103,7 @@ export default function ArtistListPage() {
   // Reset Api
   const resetData = async () => {
     try {
-      const response = await artistApi.getAll();
+      const response = await songApi.getAll();
       setOriginalData(response);
       updateTabNumbers(response);
     } catch (error) {
@@ -135,19 +135,19 @@ export default function ArtistListPage() {
   // Change value by tab
   const handleFilterStatus = (newStatus) => {
     if (newStatus === 1) {
-      setArtistList(originalData.filter((item) => !item.deleted));
+      setSongList(originalData.filter((item) => !item.deleted));
     } else if (newStatus === 2) {
-      setArtistList(originalData.filter((item) => item.status && !item.deleted));
+      setSongList(originalData.filter((item) => item.status && !item.deleted));
     } else if (newStatus === 3) {
-      setArtistList(originalData.filter((item) => !item.status && !item.deleted));
+      setSongList(originalData.filter((item) => !item.status && !item.deleted));
     } else if (newStatus === 4) {
-      setArtistList(originalData.filter((item) => item.deleted));
+      setSongList(originalData.filter((item) => item.deleted));
     }
   };
 
   // Handle navigate edit page
   const handleEditRow = () => {
-    navigate(`/dashboard/artist/edit/${idRow}`);
+    navigate(`/dashboard/song/edit/${idRow}`);
   };
 
   // Handle delete
@@ -156,14 +156,14 @@ export default function ArtistListPage() {
     setOpen(null);
 
     try {
-      await toast.promise(artistApi.delete(idRow), {
-        pending: 'Đang xóa nghệ sĩ...',
-        success: 'Xóa nghệ sĩ thành công!',
-        error: 'Xóa nghệ sĩ thất bại!',
+      await toast.promise(songApi.delete(idRow), {
+        pending: 'Đang xóa bài hát...',
+        success: 'Xóa bài hát thành công!',
+        error: 'Xóa bài hát thất bại!',
       });
-      setArtistList(artistList.filter((genre) => genre._id !== idRow));
+      setSongList(songList.filter((genre) => genre._id !== idRow));
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      console.log('Failed to delete: ', error);
     }
     resetData();
   };
@@ -172,12 +172,12 @@ export default function ArtistListPage() {
   const handleDeleteManyRows = async () => {
     setOpenModalDeleteMany(false);
     try {
-      await toast.promise(artistApi.delete(selected), {
-        pending: 'Đang xóa nghệ sĩ...',
-        success: 'Xóa nghệ sĩ thành công!',
-        error: 'Xóa nghệ sĩ thất bại!',
+      await toast.promise(songApi.delete(selected), {
+        pending: 'Đang xóa bài hát...',
+        success: 'Xóa bài hát thành công!',
+        error: 'Xóa bài hát thất bại!',
       });
-      setArtistList(artistList.filter((genre) => !selected.includes(genre._id)));
+      setSongList(songList.filter((genre) => !selected.includes(genre._id)));
       setSelected([]);
     } catch (error) {
       console.log('Failed to delete genre: ', error);
@@ -188,12 +188,12 @@ export default function ArtistListPage() {
   // Handle restore
   const handleRestore = async (id) => {
     try {
-      await toast.promise(artistApi.restore(id), {
-        pending: 'Đang khôi phục nghệ sĩ...',
-        success: 'Khôi phục nghệ sĩ thành công!',
-        error: 'Khôi phục nghệ sĩ thất bại!',
+      await toast.promise(songApi.restore(id), {
+        pending: 'Đang khôi phục bài hát...',
+        success: 'Khôi phục bài hát thành công!',
+        error: 'Khôi phục bài hát thất bại!',
       });
-      setArtistList(artistList.filter((genre) => genre._id !== id));
+      setSongList(songList.filter((genre) => genre._id !== id));
     } catch (error) {
       console.log('Failed to restore: ', error);
     }
@@ -204,12 +204,12 @@ export default function ArtistListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(artistApi.forceDelete(idRow), {
-        pending: 'Đang xóa nghệ sĩ...',
-        success: 'Xóa nghệ sĩ thành công!',
-        error: 'Xóa nghệ sĩ thất bại!',
+      await toast.promise(songApi.forceDelete(idRow), {
+        pending: 'Đang xóa bài hát...',
+        success: 'Xóa bài hát thành công!',
+        error: 'Xóa bài hát thất bại!',
       });
-      setArtistList(artistList.filter((genre) => genre._id !== idRow));
+      setSongList(songList.filter((genre) => genre._id !== idRow));
     } catch (error) {
       console.log('Failed to delete genre: ', error);
     }
@@ -228,26 +228,26 @@ export default function ArtistListPage() {
     setOpenModalForceDelete(true);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - artistList.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - songList.length) : 0;
 
-  const filteredList = applySortFilter(artistList, getComparator(order, orderBy), filterName);
+  const filteredList = applySortFilter(songList, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredList.length && !!filterName;
 
   return (
     <>
       <Helmet>
-        <title> Danh Sách Nghệ Sĩ | ZingMp3 </title>
+        <title> Danh Sách bài hát | ZingMp3 </title>
       </Helmet>
 
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Danh sách nghệ sĩ
+            Danh sách bài hát
           </Typography>
-          <Link to="/dashboard/artist/add">
+          <Link to="/dashboard/song/add">
             <Button variant="contained" startIcon={<Iconify icon="eva:plus-fill" />}>
-              Thêm nghệ sĩ
+              Thêm bài hát
             </Button>
           </Link>
         </Stack>
@@ -262,7 +262,6 @@ export default function ArtistListPage() {
             placeholder="Tìm kiếm ..."
             onDeleteAll={() => setOpenModalDeleteMany(true)}
             onChangeStatus={handleChangeStatus}
-            // onFilterStatus={handleFilterStatus}
           />
 
           <Scrollbar>
@@ -272,14 +271,25 @@ export default function ArtistListPage() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={artistList.length}
+                  rowCount={songList.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, name, roles, avatarUrl, genres, followers, status, createdAt } = row;
+                    const {
+                      _id,
+                      thumbnailUrl,
+                      name,
+                      albumId,
+                      artists,
+                      composers,
+                      playCount,
+                      favorites,
+                      status,
+                      createdAt,
+                    } = row;
                     const selectedList = selected.indexOf(_id) !== -1;
 
                     return (
@@ -290,13 +300,20 @@ export default function ArtistListPage() {
 
                         <TableCell component="th" scope="row">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={name} src={avatarUrl} />
+                            <img
+                              src={thumbnailUrl}
+                              alt="hình ảnh"
+                              height={40}
+                              style={{
+                                borderRadius: '4px',
+                              }}
+                            />
                             <Stack direction="column" spacing={0}>
                               <Typography variant="subtitle2" noWrap>
                                 {name}
                               </Typography>
-                              <Typography variant="body2" sx={{ color: 'text.secondary' }} noWrap>
-                                {renderArray(roles)}
+                              <Typography variant="caption" noWrap>
+                                {albumId.name}
                               </Typography>
                             </Stack>
                           </Stack>
@@ -307,14 +324,17 @@ export default function ArtistListPage() {
                             <Typography variant="body2" noWrap>
                               {fDate(createdAt)}
                             </Typography>
-                            <Typography color="slategrey" variant="caption" noWrap>
+                            <Typography sx={{ color: 'text.secondary' }} variant="caption" noWrap>
                               {fHour(createdAt)}
                             </Typography>
                           </Stack>
                         </TableCell>
 
-                        <TableCell align="left">{renderArray(genres)}</TableCell>
-                        <TableCell align="left">{followers}</TableCell>
+                        <TableCell align="left">{artists.map((item) => item.name).join(', ')}</TableCell>
+                        <TableCell align="left">{composers.map((item) => item.name).join(', ')}</TableCell>
+
+                        <TableCell align="left">{playCount}</TableCell>
+                        <TableCell align="left">{favorites}</TableCell>
 
                         <TableCell align="left">
                           <Label color={(status && 'success') || 'error'}>{(status && 'active') || 'inactive'}</Label>
@@ -322,7 +342,7 @@ export default function ArtistListPage() {
 
                         <TableCell align="right">
                           {tab === 4 ? (
-                            <Stack direction="row" alignItems="center" justifyContent="flex-end">
+                            <Stack direction="row" alignItems="center" justifyContent="center">
                               <Tooltip title="Khôi phục" placement="top">
                                 <IconButton onClick={() => handleRestore(_id)} size="large" color="default">
                                   <Iconify icon={'eva:refresh-fill'} />
@@ -350,7 +370,7 @@ export default function ArtistListPage() {
                   )}
                 </TableBody>
 
-                {artistList.length <= 0 && <NoData nameTable="nghệ sĩ" />}
+                {songList.length <= 0 && <NoData nameTable="bài hát" />}
                 {isNotFound && <NoSearchData nameSearch={filterName} />}
               </Table>
             </TableContainer>
@@ -359,7 +379,7 @@ export default function ArtistListPage() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={artistList.length}
+            count={songList.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}
@@ -380,24 +400,24 @@ export default function ArtistListPage() {
         open={openModalDelete}
         onClose={() => setOpenModalDelete(false)}
         onConfirm={handleDeleteRow}
-        title="Xóa nghệ sĩ"
-        content="Bạn có chắc chắn muốn xoá nghệ sĩ này?"
+        title="Xóa bài hát"
+        content="Bạn có chắc chắn muốn xoá bài hát này?"
       />
 
       <ModalTable
         open={openModalDeleteMany}
         onClose={() => setOpenModalDeleteMany(false)}
         onConfirm={handleDeleteManyRows}
-        title="Xóa nghệ sĩ đã chọn"
-        content="Bạn có chắc chắn muốn xoá các nghệ sĩ đã chọn?"
+        title="Xóa bài hát đã chọn"
+        content="Bạn có chắc chắn muốn xoá các bài hát đã chọn?"
       />
 
       <ModalTable
         open={openModalForceDelete}
         onClose={() => setOpenModalForceDelete(false)}
         onConfirm={handleForceDelete}
-        title="Xóa nghệ sĩ"
-        content="Hành động này sẽ xóa vĩnh viễn nghệ sĩ này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
+        title="Xóa bài hát"
+        content="Hành động này sẽ xóa vĩnh viễn bài hát này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
       />
     </>
   );

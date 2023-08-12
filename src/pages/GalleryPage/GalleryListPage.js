@@ -26,16 +26,18 @@ import Label from '../../components/label';
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
 import { TableListHead, TableListToolbar, ModalTable, NoData, NoSearchData, PopoverMenu } from '../../components/table';
+import { fDate, fHour } from '../../utils/formatTime';
 
 import { galleryApi } from '../../api';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'imageUrl', label: 'Hình', minWidth: 150 },
-  { id: 'order', label: 'Thứ tự', minWidth: 200 },
-  { id: 'link', label: 'Liên kết', minWidth: 500 },
-  { id: 'status', label: 'Trạng thái', minWidth: 300 },
+  { id: 'imageUrl', label: 'Hình' },
+  { id: 'create', label: 'Ngày tạo' },
+  { id: 'order', label: 'Thứ tự' },
+  { id: 'link', label: 'Liên kết' },
+  { id: 'status', label: 'Trạng thái' },
   { id: '' },
 ];
 
@@ -274,7 +276,7 @@ export default function GalleryListPage() {
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, imageUrl, link, order, status } = row;
+                    const { _id, imageUrl, link, order, status, createdAt } = row;
                     const selectedList = selected.indexOf(_id) !== -1;
 
                     return (
@@ -292,6 +294,17 @@ export default function GalleryListPage() {
                               borderRadius: '4px',
                             }}
                           />
+                        </TableCell>
+
+                        <TableCell align="left">
+                          <Stack direction="column" spacing={0}>
+                            <Typography variant="body2" noWrap>
+                              {fDate(createdAt)}
+                            </Typography>
+                            <Typography color="slategrey" variant="caption" noWrap>
+                              {fHour(createdAt)}
+                            </Typography>
+                          </Stack>
                         </TableCell>
 
                         <TableCell align="left">{order}</TableCell>

@@ -41,7 +41,12 @@ const navConfig = [
     icon: <Iconify icon={'eva:people-outline'} width={24} height={24} />,
   },
   {
-    title: 'user',
+    title: 'Album',
+    path: '/dashboard/album',
+    icon: <Iconify icon={'eva:browser-outline'} width={24} height={24} />,
+  },
+  {
+    title: 'Nguời dùng',
     path: '/dashboard/user',
     icon: <Iconify icon={'eva:person-outline'} width={24} height={24} />,
   },

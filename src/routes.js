@@ -3,14 +3,15 @@ import { Navigate, useRoutes } from 'react-router-dom';
 import DashboardLayout from './layouts/dashboard';
 import SimpleLayout from './layouts/simple';
 //
-import BlogPage from './pages/BlogPage';
 import LoginPage from './pages/LoginPage';
 import Page404 from './pages/Page404';
-import ProductsPage from './pages/ProductsPage';
 import DashboardAppPage from './pages/DashboardAppPage';
 import { GenreAddPage, GenreListPage, GenreEditPage } from './pages/GenrePage';
 import { GalleryAddPage, GalleryListPage, GalleryEditPage } from './pages/GalleryPage';
 import { ArtistAddPage, ArtistListPage, ArtistEditPage } from './pages/ArtistPage';
+import { UserAddPage, UserListPage, UserEditPage } from './pages/UserPage';
+import { SongAddPage, SongListPage, SongEditPage } from './pages/SongPage';
+import { AlbumAddPage, AlbumListPage, AlbumEditPage } from './pages/AlbumPage';
 
 // ----------------------------------------------------------------------
 
@@ -31,24 +32,15 @@ export default function Router() {
         { path: 'artist', element: <ArtistListPage /> },
         { path: 'artist/add', element: <ArtistAddPage /> },
         { path: 'artist/edit/:id', element: <ArtistEditPage /> },
-        // { path: 'user', element: <UserListPage /> },
-        // { path: 'user/add', element: <UserAddPage /> },
-        // { path: 'movie', element: <MovieListPage /> },
-        // { path: 'movie/trash', element: <MovieTrashPage /> },
-        // { path: 'movie/add', element: <MovieAddPage /> },
-        // { path: 'movie/edit/:id', element: <MovieEditPage /> },
-        // { path: 'age-group', element: <AgeGroupListPage /> },
-        // { path: 'age-group/add', element: <AgeGroupAddPage /> },
-        // { path: 'age-group/edit/:id', element: <AgeGroupEditPage /> },
-        // { path: 'subscription', element: <SubscriptionListPage /> },
-        // { path: 'subscription/add', element: <SubscriptionAddPage /> },
-        // { path: 'bill', element: <BillListPage /> },
-        // { path: 'bill/add', element: <BillAddPage /> },
-        // { path: 'country', element: <CountryListPage /> },
-        // { path: 'country/add', element: <CountryAddPage /> },
-        // { path: 'country/edit/:id', element: <CountryEditPage /> },
-        { path: 'products', element: <ProductsPage /> },
-        { path: 'blog', element: <BlogPage /> },
+        { path: 'user', element: <UserListPage /> },
+        { path: 'user/add', element: <UserAddPage /> },
+        { path: 'user/edit/:id', element: <UserEditPage /> },
+        { path: 'song', element: <SongListPage /> },
+        { path: 'song/add', element: <SongAddPage /> },
+        { path: 'song/edit/:id', element: <SongEditPage /> },
+        { path: 'Album', element: <AlbumListPage /> },
+        { path: 'Album/add', element: <AlbumAddPage /> },
+        { path: 'Album/edit/:id', element: <AlbumEditPage /> },
       ],
     },
     {

@@ -27,16 +27,18 @@ import Label from '../../components/label';
 import Iconify from '../../components/iconify';
 import Scrollbar from '../../components/scrollbar';
 import { TableListHead, TableListToolbar, ModalTable, NoData, NoSearchData, PopoverMenu } from '../../components/table';
+import { fDate, fHour } from '../../utils/formatTime';
 
 import { genreApi } from '../../api';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'imageUrl', label: 'Hình', minWidth: 200 },
-  { id: 'name', label: 'Tên', minWidth: 250 },
-  { id: 'row', label: 'Hàng', minWidth: 250 },
-  { id: 'status', label: 'Trạng thái', minWidth: 300 },
+  { id: 'imageUrl', label: 'Hình' },
+  { id: 'name', label: 'Tên' },
+  { id: 'create', label: 'Ngày tạo' },
+  { id: 'row', label: 'Hàng' },
+  { id: 'status', label: 'Trạng thái' },
   { id: '' },
 ];
 
@@ -275,7 +277,7 @@ export default function GenreListPage() {
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((rowField) => {
-                    const { _id, imageUrl, name, row: rowName, status } = rowField;
+                    const { _id, imageUrl, name, row: rowName, status, createdAt } = rowField;
                     const selectedList = selected.indexOf(_id) !== -1;
 
                     return (
@@ -299,6 +301,17 @@ export default function GenreListPage() {
                           <Typography variant="subtitle2" noWrap>
                             {name}
                           </Typography>
+                        </TableCell>
+
+                        <TableCell align="left">
+                          <Stack direction="column" spacing={0}>
+                            <Typography variant="body2" noWrap>
+                              {fDate(createdAt)}
+                            </Typography>
+                            <Typography color="slategrey" variant="caption" noWrap>
+                              {fHour(createdAt)}
+                            </Typography>
+                          </Stack>
                         </TableCell>
 
                         <TableCell align="left">{rowName}</TableCell>

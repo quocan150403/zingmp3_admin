@@ -31,6 +31,7 @@ export default function GalleryAddPage() {
     formData.append('link', link);
     formData.append('order', order);
     formData.append('imageUrl', imageUrl);
+    formData.append('status', status);
     return formData;
   };
 
