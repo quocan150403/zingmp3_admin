@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import PropTypes from 'prop-types';
 import { Stack, TableBody, TableCell, TableRow, Typography } from '@mui/material';
 

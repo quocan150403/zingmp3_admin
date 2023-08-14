@@ -2,7 +2,7 @@ import axiosClient from './axiosClient';
 
 const url = 'artists';
 
-const genreApi = {
+const artistApi = {
   getQuery: (params) => axiosClient.get(url, { params }),
   getAll: () => axiosClient.get(`${url}/all`),
   getById: (id) => axiosClient.get(`${url}/${id}`),
@@ -28,7 +28,19 @@ const genreApi = {
       },
     }),
   restore: (id) => axiosClient.patch(`${url}/restore/${id}`),
-  forceDelete: (id) => axiosClient.delete(`${url}/force/${id}`),
+  forceDelete: (id, objOldUrl) =>
+    axiosClient.delete(`${url}/force/${id}`, {
+      data: {
+        ...objOldUrl,
+      },
+    }),
+  forceDeleteMany: (ids, objOldUrl) =>
+    axiosClient.delete(`${url}/force-many`, {
+      data: {
+        ids,
+        ...objOldUrl,
+      },
+    }),
 };
 
-export default genreApi;
+export default artistApi;

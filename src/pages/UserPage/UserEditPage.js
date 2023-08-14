@@ -12,7 +12,10 @@ import {
   Stack,
   Button,
   Grid,
-  Autocomplete,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 // toast
 import { ToastContainer, toast } from 'react-toastify';
@@ -30,6 +33,7 @@ export default function UserEditPage() {
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [oldAvatarUrl, setOldAvatarUrl] = useState('');
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -43,6 +47,7 @@ export default function UserEditPage() {
         setRole(res.role);
         setStatus(res.status);
         setAvatarUrl(res.avatarUrl);
+        setOldAvatarUrl(res.avatarUrl);
       } catch (error) {
         console.log(error);
       }
@@ -67,6 +72,7 @@ export default function UserEditPage() {
     formData.append('role', role);
     formData.append('status', status);
     formData.append('avatarUrl', avatarUrl);
+    formData.append('oldAvatarUrl', oldAvatarUrl);
     return formData;
   };
 
@@ -108,14 +114,22 @@ export default function UserEditPage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                   />
-                  <Autocomplete
-                    fullWidth
-                    id="role"
-                    options={ROLES}
-                    value={role}
-                    onChange={(e, newValue) => setRole(newValue)}
-                    renderInput={(params) => <TextField {...params} label="Vai trò" />}
-                  />
+                  <FormControl fullWidth>
+                    <InputLabel id="role-label">Vai trò</InputLabel>
+                    <Select
+                      labelId="role-label"
+                      id="role"
+                      value={role}
+                      label="Vai trò"
+                      onChange={(e) => setRole(e.target.value)}
+                    >
+                      {ROLES.map((item, index) => (
+                        <MenuItem key={index} value={item}>
+                          {item}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Stack>
                 <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
                   <TextField

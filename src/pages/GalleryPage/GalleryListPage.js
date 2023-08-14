@@ -56,12 +56,14 @@ export default function GalleryListPage() {
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
   const [galleryList, setGalleryList] = useState([]);
+  const [oldImageUrl, setOldImageUrl] = useState('');
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [openModalDeleteMany, setOpenModalDeleteMany] = useState(false);
   const [openModalForceDelete, setOpenModalForceDelete] = useState(false);
+  const [openModalForceDeleteMany, setOpenModalForceDeleteMany] = useState(false);
 
   const {
     page,
@@ -170,7 +172,7 @@ export default function GalleryListPage() {
   const handleDeleteManyRows = async () => {
     setOpenModalDeleteMany(false);
     try {
-      await toast.promise(galleryApi.delete(selected), {
+      await toast.promise(galleryApi.deleteMany(selected), {
         pending: 'Đang xóa banner...',
         success: 'Xóa banner thành công!',
         error: 'Xóa banner thất bại!',
@@ -202,7 +204,7 @@ export default function GalleryListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(galleryApi.forceDelete(idRow), {
+      await toast.promise(galleryApi.forceDelete(idRow, { oldImageUrl }), {
         pending: 'Đang xóa banner...',
         success: 'Xóa banner thành công!',
         error: 'Xóa banner thất bại!',
@@ -214,6 +216,23 @@ export default function GalleryListPage() {
     resetData();
   };
 
+  // Handle force delete many
+  const handleForceDeleteMany = async () => {
+    setOpenModalForceDeleteMany(false);
+    const oldImageUrls = originalData.filter((item) => selected.includes(item._id)).map((item) => item.imageUrl);
+    try {
+      await toast.promise(galleryApi.forceDeleteMany(selected, { oldImageUrls }), {
+        pending: 'Đang xóa banner...',
+        success: 'Xóa banner thành công!',
+        error: 'Xóa banner thất bại!',
+      });
+      setGalleryList(galleryList.filter((item) => !selected.includes(item._id)));
+    } catch (error) {
+      console.log('Failed to delete: ', error);
+    }
+    resetData();
+  };
+
   // Show option (edit, delete)
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -221,8 +240,9 @@ export default function GalleryListPage() {
   };
 
   // Show Modal force delete
-  const handleOpenModalForceDelete = (id) => {
+  const handleOpenModalForceDelete = (id, oldImageUrl) => {
     setIdRow(id);
+    setOldImageUrl(oldImageUrl);
     setOpenModalForceDelete(true);
   };
 
@@ -259,6 +279,7 @@ export default function GalleryListPage() {
             onFilterName={handleFilterByName}
             placeholder="Tìm kiếm ..."
             onDeleteAll={() => setOpenModalDeleteMany(true)}
+            onForceDeleteAll={() => setOpenModalForceDeleteMany(true)}
             onChangeStatus={handleChangeStatus}
           />
 
@@ -323,7 +344,7 @@ export default function GalleryListPage() {
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Xoá vĩnh viễn" placement="top">
-                                <IconButton onClick={() => handleOpenModalForceDelete(_id)} color="error">
+                                <IconButton onClick={() => handleOpenModalForceDelete(_id, imageUrl)} color="error">
                                   <Iconify icon={'eva:trash-2-fill'} />
                                 </IconButton>
                               </Tooltip>
@@ -391,6 +412,14 @@ export default function GalleryListPage() {
         onClose={() => setOpenModalForceDelete(false)}
         onConfirm={handleForceDelete}
         title="Xóa hình ảnh"
+        content="Hành động này sẽ xóa vĩnh viễn hình ảnh này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
+      />
+
+      <ModalTable
+        open={openModalForceDeleteMany}
+        onClose={() => setOpenModalForceDeleteMany(false)}
+        onConfirm={handleForceDeleteMany}
+        title="Xóa vĩnh viễn những hình ảnh đã chọn ?"
         content="Hành động này sẽ xóa vĩnh viễn hình ảnh này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
       />
     </>

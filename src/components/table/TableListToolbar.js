@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import PropTypes from 'prop-types';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
@@ -9,7 +8,7 @@ import Label from '../label';
 // import TableFilter from './TableFilter';
 // ----------------------------------------------------------------------
 
-const StyledRoot = styled('div')(({ theme }) => ({
+const StyledRoot = styled('div')(() => ({
   height: '144px',
   position: 'relative',
   display: 'flex',
@@ -80,6 +79,7 @@ TableListToolbar.propTypes = {
   placeholder: PropTypes.string,
   onFilterName: PropTypes.func,
   onDeleteAll: PropTypes.func,
+  onForceDeleteAll: PropTypes.func,
   onChangeStatus: PropTypes.func,
 };
 
@@ -91,6 +91,7 @@ export default function TableListToolbar({
   onFilterName,
   placeholder,
   onDeleteAll,
+  onForceDeleteAll,
   onChangeStatus,
 }) {
   return (
@@ -102,7 +103,7 @@ export default function TableListToolbar({
               {numSelected} Đã chọn
             </Typography>
             <Tooltip title="Delete">
-              <IconButton onClick={onDeleteAll}>
+              <IconButton onClick={status === 4 ? onForceDeleteAll : onDeleteAll}>
                 <Iconify icon="eva:trash-2-fill" />
               </IconButton>
             </Tooltip>
@@ -134,7 +135,6 @@ export default function TableListToolbar({
                 </InputAdornment>
               }
             />
-            {/* <TableFilter /> */}
           </Stack>
         </Stack>
       )}

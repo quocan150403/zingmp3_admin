@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 // @mui
@@ -16,6 +16,7 @@ export default function GalleryEditPage() {
   const [link, setLink] = useState('');
   const [order, setOrder] = useState(0);
   const [imageUrl, setImageUrl] = useState('');
+  const [oldImageUrl, setOldImageUrl] = useState('');
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ export default function GalleryEditPage() {
         const res = await galleryApi.getById(id);
         setLink(res.link);
         setOrder(res.order);
+        setOldImageUrl(res.imageUrl);
         setImageUrl(res.imageUrl);
         setStatus(res.status);
       } catch (error) {
@@ -50,6 +52,7 @@ export default function GalleryEditPage() {
     formData.append('link', link);
     formData.append('order', order);
     formData.append('imageUrl', imageUrl);
+    formData.append('oldImageUrl', oldImageUrl);
     formData.append('status', status);
     return formData;
   };

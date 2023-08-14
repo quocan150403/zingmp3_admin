@@ -44,12 +44,14 @@ export default function GalleryEditPage() {
   const [status, setStatus] = useState(true);
   const [name, setName] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [oldThumbnailUrl, setOldThumbnailUrl] = useState('');
 
   const [albumId, setAlbumId] = useState('');
   const [artists, setArtists] = useState([]);
   const [composers, setComposers] = useState([]);
   const [duration, setDuration] = useState(0);
   const [audioUrl, setAudioUrl] = useState(null);
+  const [oldAudioUrl, setOldAudioUrl] = useState(null);
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -84,11 +86,13 @@ export default function GalleryEditPage() {
         const res = await songApi.getById(id);
         setName(res.name);
         setThumbnailUrl(res.thumbnailUrl);
+        setOldThumbnailUrl(res.thumbnailUrl);
         setAlbumId(res.albumId);
         setArtists(res.artists);
         setComposers(res.composers);
         setDuration(res.duration);
         setAudioUrl(res.audioUrl);
+        setOldAudioUrl(res.audioUrl);
       } catch (error) {
         console.log(error);
       }
@@ -110,12 +114,14 @@ export default function GalleryEditPage() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('thumbnailUrl', thumbnailUrl);
+    formData.append('oldThumbnailUrl', oldThumbnailUrl);
 
     formData.append('albumId', albumId);
     formData.append('artists', JSON.stringify(artists));
     formData.append('composers', JSON.stringify(composers));
     formData.append('duration', duration);
     formData.append('audioUrl', audioUrl);
+    formData.append('oldAudioUrl', oldAudioUrl);
 
     formData.append('status', status);
     return formData;

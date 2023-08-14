@@ -58,12 +58,15 @@ export default function SongListPage() {
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
   const [songList, setSongList] = useState([]);
+  const [oldThumbnailUrl, setOldThumbnailUrl] = useState('');
+  const [oldAudioUrl, setOldAudioUrl] = useState(null);
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [openModalDeleteMany, setOpenModalDeleteMany] = useState(false);
   const [openModalForceDelete, setOpenModalForceDelete] = useState(false);
+  const [openModalForceDeleteMany, setOpenModalForceDeleteMany] = useState(false);
 
   const {
     page,
@@ -172,7 +175,7 @@ export default function SongListPage() {
   const handleDeleteManyRows = async () => {
     setOpenModalDeleteMany(false);
     try {
-      await toast.promise(songApi.delete(selected), {
+      await toast.promise(songApi.deleteMany(selected), {
         pending: 'Đang xóa bài hát...',
         success: 'Xóa bài hát thành công!',
         error: 'Xóa bài hát thất bại!',
@@ -204,14 +207,47 @@ export default function SongListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(songApi.forceDelete(idRow), {
-        pending: 'Đang xóa bài hát...',
-        success: 'Xóa bài hát thành công!',
-        error: 'Xóa bài hát thất bại!',
-      });
+      await toast.promise(
+        songApi.forceDelete(idRow, {
+          oldThumbnailUrl,
+          oldAudioUrl,
+        }),
+        {
+          pending: 'Đang xóa bài hát...',
+          success: 'Xóa bài hát thành công!',
+          error: 'Xóa bài hát thất bại!',
+        }
+      );
       setSongList(songList.filter((genre) => genre._id !== idRow));
     } catch (error) {
       console.log('Failed to delete genre: ', error);
+    }
+    resetData();
+  };
+
+  // Handle force delete many
+  const handleForceDeleteMany = async () => {
+    setOpenModalForceDeleteMany(false);
+    const oldThumbnailUrls = originalData
+      .filter((item) => selected.includes(item._id))
+      .map((item) => item.thumbnailUrl);
+    const oldAudioUrls = originalData.filter((item) => selected.includes(item._id)).map((item) => item.audioUrl);
+    try {
+      await toast.promise(
+        songApi.forceDeleteMany(selected, {
+          oldThumbnailUrls,
+          oldAudioUrls,
+        }),
+        {
+          pending: 'Đang xóa banner...',
+          success: 'Xóa banner thành công!',
+          error: 'Xóa banner thất bại!',
+        }
+      );
+      setSongList(songList.filter((item) => !selected.includes(item._id)));
+      setSelected([]);
+    } catch (error) {
+      console.log('Failed to delete: ', error);
     }
     resetData();
   };
@@ -223,8 +259,10 @@ export default function SongListPage() {
   };
 
   // Show Modal force delete
-  const handleOpenModalForceDelete = (id) => {
+  const handleOpenModalForceDelete = (id, oldThumbnail, oldAudio) => {
     setIdRow(id);
+    setOldThumbnailUrl(oldThumbnail);
+    setOldAudioUrl(oldAudio);
     setOpenModalForceDelete(true);
   };
 
@@ -261,6 +299,7 @@ export default function SongListPage() {
             onFilterName={handleFilterByName}
             placeholder="Tìm kiếm ..."
             onDeleteAll={() => setOpenModalDeleteMany(true)}
+            onForceDeleteAll={() => setOpenModalForceDeleteMany(true)}
             onChangeStatus={handleChangeStatus}
           />
 
@@ -287,6 +326,7 @@ export default function SongListPage() {
                       composers,
                       playCount,
                       favorites,
+                      audioUrl,
                       status,
                       createdAt,
                     } = row;
@@ -349,7 +389,10 @@ export default function SongListPage() {
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Xoá vĩnh viễn" placement="top">
-                                <IconButton onClick={() => handleOpenModalForceDelete(_id)} color="error">
+                                <IconButton
+                                  onClick={() => handleOpenModalForceDelete(_id, thumbnailUrl, audioUrl)}
+                                  color="error"
+                                >
                                   <Iconify icon={'eva:trash-2-fill'} />
                                 </IconButton>
                               </Tooltip>
@@ -416,7 +459,15 @@ export default function SongListPage() {
         open={openModalForceDelete}
         onClose={() => setOpenModalForceDelete(false)}
         onConfirm={handleForceDelete}
-        title="Xóa bài hát"
+        title="Xóa vĩnh viễn bài hát"
+        content="Hành động này sẽ xóa vĩnh viễn bài hát này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
+      />
+
+      <ModalTable
+        open={openModalForceDeleteMany}
+        onClose={() => setOpenModalForceDeleteMany(false)}
+        onConfirm={handleForceDeleteMany}
+        title="Xóa vĩnh viễn bài hát đã chọn"
         content="Hành động này sẽ xóa vĩnh viễn bài hát này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
       />
     </>

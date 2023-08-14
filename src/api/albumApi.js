@@ -28,7 +28,19 @@ const albumApi = {
       },
     }),
   restore: (id) => axiosClient.patch(`${url}/restore/${id}`),
-  forceDelete: (id) => axiosClient.delete(`${url}/force/${id}`),
+  forceDelete: (id, objOldUrl) =>
+    axiosClient.delete(`${url}/force/${id}`, {
+      data: {
+        ...objOldUrl,
+      },
+    }),
+  forceDeleteMany: (ids, objOldUrl) =>
+    axiosClient.delete(`${url}/force-many`, {
+      data: {
+        ids,
+        ...objOldUrl,
+      },
+    }),
 };
 
 export default albumApi;

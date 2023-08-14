@@ -54,12 +54,14 @@ export default function AlbumListPage() {
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
   const [albumList, setAlbumList] = useState([]);
+  const [oldThumbnailUrl, setOldThumbnailUrl] = useState('');
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [openModalDeleteMany, setOpenModalDeleteMany] = useState(false);
   const [openModalForceDelete, setOpenModalForceDelete] = useState(false);
+  const [openModalForceDeleteMany, setOpenModalForceDeleteMany] = useState(false);
 
   const {
     page,
@@ -168,7 +170,7 @@ export default function AlbumListPage() {
   const handleDeleteManyRows = async () => {
     setOpenModalDeleteMany(false);
     try {
-      await toast.promise(albumApi.delete(selected), {
+      await toast.promise(albumApi.deleteMany(selected), {
         pending: 'Đang xóa album...',
         success: 'Xóa album thành công!',
         error: 'Xóa album thất bại!',
@@ -200,7 +202,7 @@ export default function AlbumListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(albumApi.forceDelete(idRow), {
+      await toast.promise(albumApi.forceDelete(idRow, { oldThumbnailUrl }), {
         pending: 'Đang xóa album...',
         success: 'Xóa album thành công!',
         error: 'Xóa album thất bại!',
@@ -212,6 +214,26 @@ export default function AlbumListPage() {
     resetData();
   };
 
+  // Handle force delete many
+  const handleForceDeleteMany = async () => {
+    setOpenModalForceDeleteMany(false);
+    const oldThumbnailUrls = originalData
+      .filter((item) => selected.includes(item._id))
+      .map((item) => item.thumbnailUrl);
+    try {
+      await toast.promise(albumApi.forceDeleteMany(selected, { oldThumbnailUrls }), {
+        pending: 'Đang xóa banner...',
+        success: 'Xóa banner thành công!',
+        error: 'Xóa banner thất bại!',
+      });
+      setAlbumList(albumList.filter((item) => !selected.includes(item._id)));
+      setSelected([]);
+    } catch (error) {
+      console.log('Failed to delete: ', error);
+    }
+    resetData();
+  };
+
   // Show option (edit, delete)
   const handleOpenMenu = (event) => {
     setOpen(event.currentTarget);
@@ -219,8 +241,9 @@ export default function AlbumListPage() {
   };
 
   // Show Modal force delete
-  const handleOpenModalForceDelete = (id) => {
+  const handleOpenModalForceDelete = (id, oldThumbnailUrl) => {
     setIdRow(id);
+    setOldThumbnailUrl(oldThumbnailUrl);
     setOpenModalForceDelete(true);
   };
 
@@ -256,6 +279,7 @@ export default function AlbumListPage() {
             onFilterName={handleFilterByName}
             placeholder="Tìm kiếm ..."
             onDeleteAll={() => setOpenModalDeleteMany(true)}
+            onForceDeleteAll={() => setOpenModalForceDeleteMany(true)}
             onChangeStatus={handleChangeStatus}
           />
 
@@ -329,7 +353,7 @@ export default function AlbumListPage() {
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Xoá vĩnh viễn" placement="top">
-                                <IconButton onClick={() => handleOpenModalForceDelete(_id)} color="error">
+                                <IconButton onClick={() => handleOpenModalForceDelete(_id, thumbnailUrl)} color="error">
                                   <Iconify icon={'eva:trash-2-fill'} />
                                 </IconButton>
                               </Tooltip>
@@ -396,7 +420,15 @@ export default function AlbumListPage() {
         open={openModalForceDelete}
         onClose={() => setOpenModalForceDelete(false)}
         onConfirm={handleForceDelete}
-        title="Xóa album"
+        title="Xóa vĩnh viễn album"
+        content="Hành động này sẽ xóa vĩnh viễn album này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
+      />
+
+      <ModalTable
+        open={openModalForceDeleteMany}
+        onClose={() => setOpenModalForceDeleteMany(false)}
+        onConfirm={handleForceDeleteMany}
+        title="Xóa vĩnh viễn album đã chọn"
         content="Hành động này sẽ xóa vĩnh viễn album này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
       />
     </>

@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 // @mui
@@ -16,6 +16,7 @@ export default function GenreEditPage() {
   const [name, setName] = useState('');
   const [row, setRow] = useState(0);
   const [imageUrl, setImageUrl] = useState('');
+  const [oldImageUrl, setOldImageUrl] = useState('');
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -27,6 +28,7 @@ export default function GenreEditPage() {
         setName(res.name);
         setRow(res.row);
         setImageUrl(res.imageUrl);
+        setOldImageUrl(res.imageUrl);
         setStatus(res.status);
       } catch (error) {
         console.log(error);
@@ -50,6 +52,7 @@ export default function GenreEditPage() {
     formData.append('name', name);
     formData.append('row', row);
     formData.append('imageUrl', imageUrl);
+    formData.append('oldImageUrl', oldImageUrl);
     formData.append('status', status);
     return formData;
   };

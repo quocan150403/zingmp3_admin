@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 // @mui
@@ -58,6 +58,7 @@ export default function ArtistEditPage() {
   const [genres, setGenres] = useState([]);
   const [roles, setRoles] = useState([]);
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [oldAvatarUrl, setOldAvatarUrl] = useState('');
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -73,6 +74,7 @@ export default function ArtistEditPage() {
         setRoles(res.roles);
         setStatus(res.status);
         setAvatarUrl(res.avatarUrl);
+        setOldAvatarUrl(res.avatarUrl);
       } catch (error) {
         console.log(error);
       }
@@ -99,6 +101,7 @@ export default function ArtistEditPage() {
     formData.append('roles', JSON.stringify(roles));
     formData.append('status', status);
     formData.append('avatarUrl', avatarUrl);
+    formData.append('oldAvatarUrl', oldAvatarUrl);
     return formData;
   };
 

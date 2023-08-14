@@ -56,12 +56,14 @@ export default function UserListPage() {
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
   const [userList, setUserList] = useState([]);
+  const [oldAvatarUrl, setOldAvatarUrl] = useState('');
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
   const [openModalDelete, setOpenModalDelete] = useState(false);
   const [openModalDeleteMany, setOpenModalDeleteMany] = useState(false);
   const [openModalForceDelete, setOpenModalForceDelete] = useState(false);
+  const [openModalForceDeleteMany, setOpenModalForceDeleteMany] = useState(false);
 
   const {
     page,
@@ -170,7 +172,7 @@ export default function UserListPage() {
   const handleDeleteManyRows = async () => {
     setOpenModalDeleteMany(false);
     try {
-      await toast.promise(userApi.delete(selected), {
+      await toast.promise(userApi.deleteMany(selected), {
         pending: 'Đang xóa người dùng...',
         success: 'Xóa người dùng thành công!',
         error: 'Xóa người dùng thất bại!',
@@ -202,14 +204,33 @@ export default function UserListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(userApi.forceDelete(idRow), {
+      await toast.promise(userApi.forceDelete(idRow, { oldAvatarUrl }), {
         pending: 'Đang xóa người dùng...',
         success: 'Xóa người dùng thành công!',
         error: 'Xóa người dùng thất bại!',
       });
       setUserList(userList.filter((genre) => genre._id !== idRow));
+      setSelected([]);
     } catch (error) {
       console.log('Failed to delete genre: ', error);
+    }
+    resetData();
+  };
+
+  // Handle force delete many
+  const handleForceDeleteMany = async () => {
+    setOpenModalForceDeleteMany(false);
+    const oldImageUrls = originalData.filter((item) => selected.includes(item._id)).map((item) => item.imageUrl);
+    try {
+      await toast.promise(userApi.forceDeleteMany(selected, { oldImageUrls }), {
+        pending: 'Đang xóa banner...',
+        success: 'Xóa banner thành công!',
+        error: 'Xóa banner thất bại!',
+      });
+      setUserList(userList.filter((item) => !selected.includes(item._id)));
+      setSelected([]);
+    } catch (error) {
+      console.log('Failed to delete: ', error);
     }
     resetData();
   };
@@ -221,8 +242,9 @@ export default function UserListPage() {
   };
 
   // Show Modal force delete
-  const handleOpenModalForceDelete = (id) => {
+  const handleOpenModalForceDelete = (id, oldAvatarUrl) => {
     setIdRow(id);
+    setOldAvatarUrl(oldAvatarUrl);
     setOpenModalForceDelete(true);
   };
 
@@ -259,8 +281,8 @@ export default function UserListPage() {
             onFilterName={handleFilterByName}
             placeholder="Tìm kiếm ..."
             onDeleteAll={() => setOpenModalDeleteMany(true)}
+            onForceDeleteAll={() => setOpenModalForceDeleteMany(true)}
             onChangeStatus={handleChangeStatus}
-            // onFilterStatus={handleFilterStatus}
           />
 
           <Scrollbar>
@@ -327,7 +349,7 @@ export default function UserListPage() {
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Xoá vĩnh viễn" placement="top">
-                                <IconButton onClick={() => handleOpenModalForceDelete(_id)} color="error">
+                                <IconButton onClick={() => handleOpenModalForceDelete(_id, avatarUrl)} color="error">
                                   <Iconify icon={'eva:trash-2-fill'} />
                                 </IconButton>
                               </Tooltip>
@@ -394,7 +416,15 @@ export default function UserListPage() {
         open={openModalForceDelete}
         onClose={() => setOpenModalForceDelete(false)}
         onConfirm={handleForceDelete}
-        title="Xóa người dùng"
+        title="Xóa vĩnh viễn người dùng"
+        content="Hành động này sẽ xóa vĩnh viễn người dùng này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
+      />
+
+      <ModalTable
+        open={openModalForceDeleteMany}
+        onClose={() => setOpenModalForceDeleteMany(false)}
+        onConfirm={handleForceDeleteMany}
+        title="Xóa vĩnh viễn người dùng đã chọn"
         content="Hành động này sẽ xóa vĩnh viễn người dùng này khỏi hệ thống và không thể khôi phục lại. Bạn có chắc chắn muốn xóa?"
       />
     </>

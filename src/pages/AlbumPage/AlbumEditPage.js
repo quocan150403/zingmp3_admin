@@ -1,4 +1,4 @@
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 // @mui
@@ -41,6 +41,7 @@ export default function AlbumEditPage() {
   const [status, setStatus] = useState(true);
   const [name, setName] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [oldThumbnailUrl, setOldThumbnailUrl] = useState('');
   const [genres, setGenres] = useState([]);
   const [artistId, setArtistId] = useState('');
 
@@ -77,6 +78,7 @@ export default function AlbumEditPage() {
         const res = await albumApi.getById(id);
         setName(res.name);
         setThumbnailUrl(res.thumbnailUrl);
+        setOldThumbnailUrl(res.thumbnailUrl);
         setGenres(res.genres);
         setArtistId(res.artistId);
         setStatus(res.status);
@@ -101,6 +103,7 @@ export default function AlbumEditPage() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('thumbnailUrl', thumbnailUrl);
+    formData.append('oldThumbnailUrl', oldThumbnailUrl);
     formData.append('genres', JSON.stringify(genres));
     formData.append('artistId', artistId);
     formData.append('status', status);
