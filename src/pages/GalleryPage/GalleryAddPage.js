@@ -14,7 +14,7 @@ export default function GalleryAddPage() {
   const [status, setStatus] = useState(true);
   const [link, setLink] = useState('');
   const [order, setOrder] = useState(0);
-  const [imageUrl, setImageUrl] = useState('');
+  const [image, setImage] = useState('');
 
   const handleFormSubmit = async () => {
     try {
@@ -30,23 +30,30 @@ export default function GalleryAddPage() {
     const formData = new FormData();
     formData.append('link', link);
     formData.append('order', order);
-    formData.append('imageUrl', imageUrl);
+    formData.append('image', image);
     formData.append('status', status);
     return formData;
   };
 
   const addData = async (formData) => {
-    await toast.promise(galleryApi.add(formData), {
-      pending: 'Đang thêm banner...',
-      success: 'Thêm banner thành công!',
-      error: 'Thêm banner thất bại!',
-    });
+    try {
+      await toast.promise(galleryApi.add(formData), {
+        pending: 'Đang thêm banner...',
+        success: 'Thêm banner thành công!',
+      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
+    }
   };
 
   const resetForm = () => {
     setLink('');
     setOrder(0);
-    setImageUrl('');
+    setImage('');
   };
 
   return (
@@ -86,7 +93,7 @@ export default function GalleryAddPage() {
                   <Typography variant="subtitle2" mb={2}>
                     Hình ảnh
                   </Typography>
-                  <ThumbnailPreview image={imageUrl} setImage={setImageUrl} />
+                  <ThumbnailPreview image={image} setImage={setImage} />
                 </Stack>
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>

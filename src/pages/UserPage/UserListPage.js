@@ -56,7 +56,7 @@ export default function UserListPage() {
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
   const [userList, setUserList] = useState([]);
-  const [oldAvatarUrl, setOldAvatarUrl] = useState('');
+  const [oldImage, setOldImage] = useState('');
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
@@ -106,6 +106,7 @@ export default function UserListPage() {
       const response = await userApi.getAll();
       setOriginalData(response);
       updateTabNumbers(response);
+      setSelected([]);
     } catch (error) {
       console.log(error);
     }
@@ -163,7 +164,11 @@ export default function UserListPage() {
       });
       setUserList(userList.filter((genre) => genre._id !== idRow));
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -180,7 +185,11 @@ export default function UserListPage() {
       setUserList(userList.filter((genre) => !selected.includes(genre._id)));
       setSelected([]);
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -195,7 +204,11 @@ export default function UserListPage() {
       });
       setUserList(userList.filter((genre) => genre._id !== id));
     } catch (error) {
-      console.log('Failed to restore: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -204,7 +217,7 @@ export default function UserListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(userApi.forceDelete(idRow, { oldAvatarUrl }), {
+      await toast.promise(userApi.forceDelete(idRow, oldImage), {
         pending: 'Đang xóa người dùng...',
         success: 'Xóa người dùng thành công!',
         error: 'Xóa người dùng thất bại!',
@@ -212,7 +225,11 @@ export default function UserListPage() {
       setUserList(userList.filter((genre) => genre._id !== idRow));
       setSelected([]);
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -220,9 +237,9 @@ export default function UserListPage() {
   // Handle force delete many
   const handleForceDeleteMany = async () => {
     setOpenModalForceDeleteMany(false);
-    const oldImageUrls = originalData.filter((item) => selected.includes(item._id)).map((item) => item.imageUrl);
+    const imageList = originalData.filter((item) => selected.includes(item._id)).map((item) => item.imageUrl);
     try {
-      await toast.promise(userApi.forceDeleteMany(selected, { oldImageUrls }), {
+      await toast.promise(userApi.forceDeleteMany(selected, imageList), {
         pending: 'Đang xóa banner...',
         success: 'Xóa banner thành công!',
         error: 'Xóa banner thất bại!',
@@ -230,7 +247,11 @@ export default function UserListPage() {
       setUserList(userList.filter((item) => !selected.includes(item._id)));
       setSelected([]);
     } catch (error) {
-      console.log('Failed to delete: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -242,9 +263,9 @@ export default function UserListPage() {
   };
 
   // Show Modal force delete
-  const handleOpenModalForceDelete = (id, oldAvatarUrl) => {
+  const handleOpenModalForceDelete = (id, oldImage) => {
     setIdRow(id);
-    setOldAvatarUrl(oldAvatarUrl);
+    setOldImage(oldImage);
     setOpenModalForceDelete(true);
   };
 
@@ -299,7 +320,7 @@ export default function UserListPage() {
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, fullName, role, avatarUrl, email, UID, status, createdAt } = row;
+                    const { _id, fullName, role, imageUrl, email, UID, status, createdAt } = row;
                     const selectedList = selected.indexOf(_id) !== -1;
 
                     return (
@@ -310,7 +331,7 @@ export default function UserListPage() {
 
                         <TableCell component="th" scope="row">
                           <Stack direction="row" alignItems="center" spacing={2}>
-                            <Avatar alt={fullName} src={avatarUrl} />
+                            <Avatar alt={fullName} src={imageUrl} />
                             <Stack direction="column" spacing={0}>
                               <Typography variant="subtitle2" noWrap>
                                 {fullName}
@@ -349,7 +370,7 @@ export default function UserListPage() {
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Xoá vĩnh viễn" placement="top">
-                                <IconButton onClick={() => handleOpenModalForceDelete(_id, avatarUrl)} color="error">
+                                <IconButton onClick={() => handleOpenModalForceDelete(_id, imageUrl)} color="error">
                                   <Iconify icon={'eva:trash-2-fill'} />
                                 </IconButton>
                               </Tooltip>

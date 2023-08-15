@@ -28,17 +28,19 @@ const songApi = {
       },
     }),
   restore: (id) => axiosClient.patch(`${url}/restore/${id}`),
-  forceDelete: (id, objOldImageAndAudio) =>
+  forceDelete: (id, oldImage, oldAudio) =>
     axiosClient.delete(`${url}/force/${id}`, {
       data: {
-        ...objOldImageAndAudio,
+        oldAudio,
+        oldImage,
       },
     }),
-  forceDeleteMany: (ids, objOldUrls) =>
+  forceDeleteMany: (ids, imageList, audioList) =>
     axiosClient.delete(`${url}/force-many`, {
       data: {
         ids,
-        ...objOldUrls,
+        imageList,
+        audioList,
       },
     }),
 };

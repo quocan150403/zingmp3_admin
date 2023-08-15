@@ -28,17 +28,15 @@ const genreApi = {
       },
     }),
   restore: (id) => axiosClient.patch(`${url}/restore/${id}`),
-  forceDelete: (id, objOldUrl) =>
+  forceDelete: (id, oldImage) =>
     axiosClient.delete(`${url}/force/${id}`, {
-      data: {
-        ...objOldUrl,
-      },
+      data: { oldImage },
     }),
-  forceDeleteMany: (ids, objOldUrl) =>
+  forceDeleteMany: (ids, imageList) =>
     axiosClient.delete(`${url}/force-many`, {
       data: {
         ids,
-        ...objOldUrl,
+        imageList,
       },
     }),
 };

@@ -56,7 +56,7 @@ export default function ArtistAddPage() {
   const [bio, setBio] = useState('');
   const [genres, setGenres] = useState([]);
   const [roles, setRoles] = useState([]);
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [image, setImage] = useState('');
 
   const handleFormSubmit = async () => {
     try {
@@ -73,19 +73,26 @@ export default function ArtistAddPage() {
     formData.append('name', name);
     formData.append('stageName', stageName);
     formData.append('bio', bio);
-    formData.append('genres', JSON.stringify(genres));
-    formData.append('roles', JSON.stringify(roles));
+    formData.append('genres[]', genres);
+    formData.append('roles[]', roles);
     formData.append('status', status);
-    formData.append('avatarUrl', avatarUrl);
+    formData.append('image', image);
     return formData;
   };
 
   const addData = async (formData) => {
-    await toast.promise(artistApi.add(formData), {
-      pending: 'Đang thêm nghệ sĩ...',
-      success: 'Thêm nghệ sĩ thành công!',
-      error: 'Thêm nghệ sĩ thất bại!',
-    });
+    try {
+      await toast.promise(artistApi.add(formData), {
+        pending: 'Đang thêm nghệ sĩ...',
+        success: 'Thêm nghệ sĩ thành công!',
+      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
+    }
   };
 
   const resetForm = () => {
@@ -95,7 +102,7 @@ export default function ArtistAddPage() {
     setGenres([]);
     setRoles([]);
     setStatus(true);
-    setAvatarUrl('');
+    setImage('');
   };
 
   return (
@@ -113,7 +120,7 @@ export default function ArtistAddPage() {
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <Card sx={{ p: 4, pt: 10 }}>
-              <AvatarPreview image={avatarUrl} setImage={setAvatarUrl} />
+              <AvatarPreview image={image} setImage={setImage} />
             </Card>
           </Grid>
           <Grid item xs={12} md={8}>
@@ -150,7 +157,7 @@ export default function ArtistAddPage() {
                       setGenres(newValue);
                     }}
                     value={genres}
-                    renderInput={(params) => <TextField {...params} label="Thể loại" variant="outlined" />}
+                    renderInput={(params) => <TextField {...params} label="nghệ sĩ" variant="outlined" />}
                   />
                   <Autocomplete
                     id="roles"

@@ -40,8 +40,8 @@ export default function AlbumEditPage() {
 
   const [status, setStatus] = useState(true);
   const [name, setName] = useState('');
-  const [thumbnailUrl, setThumbnailUrl] = useState('');
-  const [oldThumbnailUrl, setOldThumbnailUrl] = useState('');
+  const [image, setImage] = useState('');
+  const [oldImage, setOldImage] = useState('');
   const [genres, setGenres] = useState([]);
   const [artistId, setArtistId] = useState('');
 
@@ -77,8 +77,8 @@ export default function AlbumEditPage() {
       try {
         const res = await albumApi.getById(id);
         setName(res.name);
-        setThumbnailUrl(res.thumbnailUrl);
-        setOldThumbnailUrl(res.thumbnailUrl);
+        setImage(res.image);
+        setOldImage(res.image);
         setGenres(res.genres);
         setArtistId(res.artistId);
         setStatus(res.status);
@@ -102,20 +102,27 @@ export default function AlbumEditPage() {
   const createFormData = () => {
     const formData = new FormData();
     formData.append('name', name);
-    formData.append('thumbnailUrl', thumbnailUrl);
-    formData.append('oldThumbnailUrl', oldThumbnailUrl);
-    formData.append('genres', JSON.stringify(genres));
+    formData.append('image', image);
+    formData.append('oldImage', oldImage);
+    formData.append('genres[]', genres);
     formData.append('artistId', artistId);
     formData.append('status', status);
     return formData;
   };
 
   const updateData = async (formData) => {
-    await toast.promise(albumApi.update(id, formData), {
-      pending: 'Đang cập nhật banner...',
-      success: 'Cập nhật banner thành công!',
-      error: 'Cập nhật banner thất bại!',
-    });
+    try {
+      await toast.promise(albumApi.update(id, formData), {
+        pending: 'Đang cập nhật banner...',
+        success: 'Cập nhật banner thành công!',
+      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
+    }
   };
 
   const handleChange = (event) => {
@@ -191,7 +198,7 @@ export default function AlbumEditPage() {
                   <Typography variant="subtitle2" mb={2}>
                     Hình ảnh
                   </Typography>
-                  <ThumbnailPreview image={thumbnailUrl} setImage={setThumbnailUrl} />
+                  <ThumbnailPreview image={image} setImage={setImage} />
                 </Stack>
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>

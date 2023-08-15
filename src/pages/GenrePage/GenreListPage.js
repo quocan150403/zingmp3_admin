@@ -56,7 +56,7 @@ export default function GenreListPage() {
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
   const [genreList, setGenreList] = useState([]);
-  const [oldImageUrl, setOldImageUrl] = useState('');
+  const [oldImage, setOldImage] = useState('');
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
@@ -106,6 +106,7 @@ export default function GenreListPage() {
       const response = await genreApi.getAll();
       setOriginalData(response);
       updateTabNumbers(response);
+      setSelected([]);
     } catch (error) {
       console.log(error);
     }
@@ -163,7 +164,11 @@ export default function GenreListPage() {
       });
       setGenreList(genreList.filter((genre) => genre._id !== idRow));
     } catch (error) {
-      console.log('Failed to delete: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -178,9 +183,12 @@ export default function GenreListPage() {
         error: 'Xóa thể loại thất bại!',
       });
       setGenreList(genreList.filter((genre) => !selected.includes(genre._id)));
-      setSelected([]);
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -195,7 +203,11 @@ export default function GenreListPage() {
       });
       setGenreList(genreList.filter((genre) => genre._id !== id));
     } catch (error) {
-      console.log('Failed to restore: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -204,14 +216,18 @@ export default function GenreListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(genreApi.forceDelete(idRow, { oldImageUrl }), {
+      await toast.promise(genreApi.forceDelete(idRow, oldImage), {
         pending: 'Đang xóa thể loại...',
         success: 'Xóa thể loại thành công!',
         error: 'Xóa thể loại thất bại!',
       });
       setGenreList(genreList.filter((genre) => genre._id !== idRow));
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -219,17 +235,20 @@ export default function GenreListPage() {
   // Handle force delete many
   const handleForceDeleteMany = async () => {
     setOpenModalForceDeleteMany(false);
-    const oldImageUrls = originalData.filter((item) => selected.includes(item._id)).map((item) => item.imageUrl);
+    const imageList = originalData.filter((item) => selected.includes(item._id)).map((item) => item.imageUrl);
     try {
-      await toast.promise(genreApi.forceDeleteMany(selected, { oldImageUrls }), {
+      await toast.promise(genreApi.forceDeleteMany(selected, imageList), {
         pending: 'Đang xóa banner...',
         success: 'Xóa banner thành công!',
         error: 'Xóa banner thất bại!',
       });
       setGenreList(genreList.filter((item) => !selected.includes(item._id)));
-      setSelected([]);
     } catch (error) {
-      console.log('Failed to delete: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -241,9 +260,9 @@ export default function GenreListPage() {
   };
 
   // Show Modal force delete
-  const handleOpenModalForceDelete = (id, oldImageUrl) => {
+  const handleOpenModalForceDelete = (id, oldImage) => {
     setIdRow(id);
-    setOldImageUrl(oldImageUrl);
+    setOldImage(oldImage);
     setOpenModalForceDelete(true);
   };
 

@@ -15,8 +15,8 @@ export default function GalleryEditPage() {
   const [status, setStatus] = useState(true);
   const [link, setLink] = useState('');
   const [order, setOrder] = useState(0);
-  const [imageUrl, setImageUrl] = useState('');
-  const [oldImageUrl, setOldImageUrl] = useState('');
+  const [image, setImage] = useState('');
+  const [oldImage, setOldImage] = useState('');
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -27,8 +27,8 @@ export default function GalleryEditPage() {
         const res = await galleryApi.getById(id);
         setLink(res.link);
         setOrder(res.order);
-        setOldImageUrl(res.imageUrl);
-        setImageUrl(res.imageUrl);
+        setOldImage(res.imageUrl);
+        setImage(res.imageUrl);
         setStatus(res.status);
       } catch (error) {
         console.log(error);
@@ -51,18 +51,26 @@ export default function GalleryEditPage() {
     const formData = new FormData();
     formData.append('link', link);
     formData.append('order', order);
-    formData.append('imageUrl', imageUrl);
-    formData.append('oldImageUrl', oldImageUrl);
+    formData.append('image', image);
+    formData.append('oldImage', oldImage);
     formData.append('status', status);
     return formData;
   };
 
   const updateData = async (formData) => {
-    await toast.promise(galleryApi.update(id, formData), {
-      pending: 'Đang cập nhật banner...',
-      success: 'Cập nhật banner thành công!',
-      error: 'Cập nhật banner thất bại!',
-    });
+    try {
+      await toast.promise(galleryApi.update(id, formData), {
+        pending: 'Đang cập nhật banner...',
+        success: 'Cập nhật banner thành công!',
+        error: 'Cập nhật banner thất bại!',
+      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
+    }
   };
 
   return (
@@ -102,7 +110,7 @@ export default function GalleryEditPage() {
                   <Typography variant="subtitle2" mb={2}>
                     Hình ảnh
                   </Typography>
-                  <ThumbnailPreview image={imageUrl} setImage={setImageUrl} />
+                  <ThumbnailPreview image={image} setImage={setImage} />
                 </Stack>
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>

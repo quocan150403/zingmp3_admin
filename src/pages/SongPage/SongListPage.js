@@ -58,8 +58,8 @@ export default function SongListPage() {
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
   const [songList, setSongList] = useState([]);
-  const [oldThumbnailUrl, setOldThumbnailUrl] = useState('');
-  const [oldAudioUrl, setOldAudioUrl] = useState(null);
+  const [oldImage, setOldImage] = useState('');
+  const [oldAudio, setOldAudio] = useState(null);
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
@@ -91,7 +91,6 @@ export default function SongListPage() {
     const fetchData = async () => {
       try {
         const response = await songApi.getAll();
-        console.log(response);
         const items = response.filter((item) => !item.deleted);
         setOriginalData(response);
         setSongList(items);
@@ -109,6 +108,7 @@ export default function SongListPage() {
       const response = await songApi.getAll();
       setOriginalData(response);
       updateTabNumbers(response);
+      setSelected([]);
     } catch (error) {
       console.log(error);
     }
@@ -166,7 +166,11 @@ export default function SongListPage() {
       });
       setSongList(songList.filter((genre) => genre._id !== idRow));
     } catch (error) {
-      console.log('Failed to delete: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -183,7 +187,11 @@ export default function SongListPage() {
       setSongList(songList.filter((genre) => !selected.includes(genre._id)));
       setSelected([]);
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -198,7 +206,11 @@ export default function SongListPage() {
       });
       setSongList(songList.filter((genre) => genre._id !== id));
     } catch (error) {
-      console.log('Failed to restore: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -207,20 +219,18 @@ export default function SongListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(
-        songApi.forceDelete(idRow, {
-          oldThumbnailUrl,
-          oldAudioUrl,
-        }),
-        {
-          pending: 'Đang xóa bài hát...',
-          success: 'Xóa bài hát thành công!',
-          error: 'Xóa bài hát thất bại!',
-        }
-      );
+      await toast.promise(songApi.forceDelete(idRow, oldImage, oldAudio), {
+        pending: 'Đang xóa bài hát...',
+        success: 'Xóa bài hát thành công!',
+        error: 'Xóa bài hát thất bại!',
+      });
       setSongList(songList.filter((genre) => genre._id !== idRow));
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -228,26 +238,22 @@ export default function SongListPage() {
   // Handle force delete many
   const handleForceDeleteMany = async () => {
     setOpenModalForceDeleteMany(false);
-    const oldThumbnailUrls = originalData
-      .filter((item) => selected.includes(item._id))
-      .map((item) => item.thumbnailUrl);
-    const oldAudioUrls = originalData.filter((item) => selected.includes(item._id)).map((item) => item.audioUrl);
+    const imageList = originalData.filter((item) => selected.includes(item._id)).map((item) => item.imageUrl);
+    const audioList = originalData.filter((item) => selected.includes(item._id)).map((item) => item.audioUrl);
     try {
-      await toast.promise(
-        songApi.forceDeleteMany(selected, {
-          oldThumbnailUrls,
-          oldAudioUrls,
-        }),
-        {
-          pending: 'Đang xóa banner...',
-          success: 'Xóa banner thành công!',
-          error: 'Xóa banner thất bại!',
-        }
-      );
+      await toast.promise(songApi.forceDeleteMany(selected, imageList, audioList), {
+        pending: 'Đang xóa banner...',
+        success: 'Xóa banner thành công!',
+        error: 'Xóa banner thất bại!',
+      });
       setSongList(songList.filter((item) => !selected.includes(item._id)));
       setSelected([]);
     } catch (error) {
-      console.log('Failed to delete: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -261,8 +267,8 @@ export default function SongListPage() {
   // Show Modal force delete
   const handleOpenModalForceDelete = (id, oldThumbnail, oldAudio) => {
     setIdRow(id);
-    setOldThumbnailUrl(oldThumbnail);
-    setOldAudioUrl(oldAudio);
+    setOldImage(oldThumbnail);
+    setOldAudio(oldAudio);
     setOpenModalForceDelete(true);
   };
 
@@ -319,7 +325,7 @@ export default function SongListPage() {
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
                     const {
                       _id,
-                      thumbnailUrl,
+                      imageUrl,
                       name,
                       albumId,
                       artists,
@@ -341,7 +347,7 @@ export default function SongListPage() {
                         <TableCell component="th" scope="row">
                           <Stack direction="row" alignItems="center" spacing={2}>
                             <img
-                              src={thumbnailUrl}
+                              src={imageUrl}
                               alt="hình ảnh"
                               height={40}
                               style={{
@@ -390,7 +396,7 @@ export default function SongListPage() {
                               </Tooltip>
                               <Tooltip title="Xoá vĩnh viễn" placement="top">
                                 <IconButton
-                                  onClick={() => handleOpenModalForceDelete(_id, thumbnailUrl, audioUrl)}
+                                  onClick={() => handleOpenModalForceDelete(_id, imageUrl, audioUrl)}
                                   color="error"
                                 >
                                   <Iconify icon={'eva:trash-2-fill'} />

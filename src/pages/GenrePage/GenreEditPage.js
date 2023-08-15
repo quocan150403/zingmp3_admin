@@ -15,8 +15,8 @@ export default function GenreEditPage() {
   const [status, setStatus] = useState(true);
   const [name, setName] = useState('');
   const [row, setRow] = useState(0);
-  const [imageUrl, setImageUrl] = useState('');
-  const [oldImageUrl, setOldImageUrl] = useState('');
+  const [image, setImage] = useState('');
+  const [oldImage, setOldImage] = useState('');
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -27,8 +27,8 @@ export default function GenreEditPage() {
         const res = await genreApi.getById(id);
         setName(res.name);
         setRow(res.row);
-        setImageUrl(res.imageUrl);
-        setOldImageUrl(res.imageUrl);
+        setImage(res.imageUrl);
+        setOldImage(res.imageUrl);
         setStatus(res.status);
       } catch (error) {
         console.log(error);
@@ -51,18 +51,26 @@ export default function GenreEditPage() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('row', row);
-    formData.append('imageUrl', imageUrl);
-    formData.append('oldImageUrl', oldImageUrl);
+    formData.append('image', image);
+    formData.append('oldImage', oldImage);
     formData.append('status', status);
     return formData;
   };
 
   const updateData = async (formData) => {
-    await toast.promise(genreApi.update(id, formData), {
-      pending: 'Đang cập nhật thể loại...',
-      success: 'Cập nhật thể loại thành công!',
-      error: 'Cập nhật thể loại thất bại!',
-    });
+    try {
+      await toast.promise(genreApi.update(id, formData), {
+        pending: 'Đang cập nhật thể loại...',
+        success: 'Cập nhật thể loại thành công!',
+        error: 'Cập nhật thể loại thất bại!',
+      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
+    }
   };
 
   return (
@@ -104,7 +112,7 @@ export default function GenreEditPage() {
                   <Typography variant="subtitle2" mb={2}>
                     Hình ảnh
                   </Typography>
-                  <ThumbnailPreview image={imageUrl} setImage={setImageUrl} />
+                  <ThumbnailPreview image={image} setImage={setImage} />
                 </Stack>
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>

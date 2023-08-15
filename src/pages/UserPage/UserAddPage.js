@@ -32,7 +32,7 @@ export default function UserAddPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState(ROLES[0]);
-  const [avatarUrl, setAvatarUrl] = useState('');
+  const [image, setImage] = useState('');
 
   const handleFormSubmit = async () => {
     try {
@@ -51,16 +51,23 @@ export default function UserAddPage() {
     formData.append('email', email);
     formData.append('role', role);
     formData.append('status', status);
-    formData.append('avatarUrl', avatarUrl);
+    formData.append('image', image);
     return formData;
   };
 
   const addData = async (formData) => {
-    await toast.promise(userApi.add(formData), {
-      pending: 'Đang thêm người dùng...',
-      success: 'Thêm người dùng thành công!',
-      error: 'Thêm người dùng thất bại!',
-    });
+    try {
+      await toast.promise(userApi.add(formData), {
+        pending: 'Đang thêm người dùng...',
+        success: 'Thêm người dùng thành công!',
+      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
+    }
   };
 
   const resetForm = () => {
@@ -68,7 +75,7 @@ export default function UserAddPage() {
     setEmail('');
     setRole('');
     setPassword('');
-    setAvatarUrl('');
+    setImage('');
     setStatus(true);
   };
 
@@ -87,7 +94,7 @@ export default function UserAddPage() {
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <Card sx={{ p: 4, pt: 10 }}>
-              <AvatarPreview image={avatarUrl} setImage={setAvatarUrl} />
+              <AvatarPreview image={image} setImage={setImage} />
             </Card>
           </Grid>
           <Grid item xs={12} md={8}>

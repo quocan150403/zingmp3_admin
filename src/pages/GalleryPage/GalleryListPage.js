@@ -56,7 +56,7 @@ export default function GalleryListPage() {
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
   const [galleryList, setGalleryList] = useState([]);
-  const [oldImageUrl, setOldImageUrl] = useState('');
+  const [oldImage, setOldImage] = useState('');
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
@@ -106,6 +106,7 @@ export default function GalleryListPage() {
       const response = await galleryApi.getAll();
       setOriginalData(response);
       updateTabNumbers(response);
+      setSelected([]);
     } catch (error) {
       console.log(error);
     }
@@ -163,7 +164,11 @@ export default function GalleryListPage() {
       });
       setGalleryList(galleryList.filter((genre) => genre._id !== idRow));
     } catch (error) {
-      console.log('Failed to delete: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -180,7 +185,11 @@ export default function GalleryListPage() {
       setGalleryList(galleryList.filter((genre) => !selected.includes(genre._id)));
       setSelected([]);
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -195,7 +204,11 @@ export default function GalleryListPage() {
       });
       setGalleryList(galleryList.filter((genre) => genre._id !== id));
     } catch (error) {
-      console.log('Failed to restore: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -204,14 +217,18 @@ export default function GalleryListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(galleryApi.forceDelete(idRow, { oldImageUrl }), {
+      await toast.promise(galleryApi.forceDelete(idRow, oldImage), {
         pending: 'Đang xóa banner...',
         success: 'Xóa banner thành công!',
         error: 'Xóa banner thất bại!',
       });
       setGalleryList(galleryList.filter((genre) => genre._id !== idRow));
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -219,16 +236,20 @@ export default function GalleryListPage() {
   // Handle force delete many
   const handleForceDeleteMany = async () => {
     setOpenModalForceDeleteMany(false);
-    const oldImageUrls = originalData.filter((item) => selected.includes(item._id)).map((item) => item.imageUrl);
+    const oldImages = originalData.filter((item) => selected.includes(item._id)).map((item) => item.imageUrl);
     try {
-      await toast.promise(galleryApi.forceDeleteMany(selected, { oldImageUrls }), {
+      await toast.promise(galleryApi.forceDeleteMany(selected, oldImages), {
         pending: 'Đang xóa banner...',
         success: 'Xóa banner thành công!',
         error: 'Xóa banner thất bại!',
       });
       setGalleryList(galleryList.filter((item) => !selected.includes(item._id)));
     } catch (error) {
-      console.log('Failed to delete: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -240,9 +261,9 @@ export default function GalleryListPage() {
   };
 
   // Show Modal force delete
-  const handleOpenModalForceDelete = (id, oldImageUrl) => {
+  const handleOpenModalForceDelete = (id, oldImage) => {
     setIdRow(id);
-    setOldImageUrl(oldImageUrl);
+    setOldImage(oldImage);
     setOpenModalForceDelete(true);
   };
 

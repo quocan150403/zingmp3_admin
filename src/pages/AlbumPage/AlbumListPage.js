@@ -54,7 +54,7 @@ export default function AlbumListPage() {
   const [tabs, setTabs] = useState(TABS);
   const [originalData, setOriginalData] = useState([]);
   const [albumList, setAlbumList] = useState([]);
-  const [oldThumbnailUrl, setOldThumbnailUrl] = useState('');
+  const [oldImage, setOldImage] = useState('');
 
   const [idRow, setIdRow] = useState('');
   const [open, setOpen] = useState(null);
@@ -104,6 +104,7 @@ export default function AlbumListPage() {
       const response = await albumApi.getAll();
       setOriginalData(response);
       updateTabNumbers(response);
+      setSelected([]);
     } catch (error) {
       console.log(error);
     }
@@ -161,7 +162,11 @@ export default function AlbumListPage() {
       });
       setAlbumList(albumList.filter((genre) => genre._id !== idRow));
     } catch (error) {
-      console.log('Failed to delete: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -178,7 +183,11 @@ export default function AlbumListPage() {
       setAlbumList(albumList.filter((genre) => !selected.includes(genre._id)));
       setSelected([]);
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -193,7 +202,11 @@ export default function AlbumListPage() {
       });
       setAlbumList(albumList.filter((genre) => genre._id !== id));
     } catch (error) {
-      console.log('Failed to restore: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -202,14 +215,18 @@ export default function AlbumListPage() {
   const handleForceDelete = async () => {
     setOpenModalForceDelete(false);
     try {
-      await toast.promise(albumApi.forceDelete(idRow, { oldThumbnailUrl }), {
+      await toast.promise(albumApi.forceDelete(idRow, oldImage), {
         pending: 'Đang xóa album...',
         success: 'Xóa album thành công!',
         error: 'Xóa album thất bại!',
       });
       setAlbumList(albumList.filter((genre) => genre._id !== idRow));
     } catch (error) {
-      console.log('Failed to delete genre: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -217,11 +234,9 @@ export default function AlbumListPage() {
   // Handle force delete many
   const handleForceDeleteMany = async () => {
     setOpenModalForceDeleteMany(false);
-    const oldThumbnailUrls = originalData
-      .filter((item) => selected.includes(item._id))
-      .map((item) => item.thumbnailUrl);
+    const imageList = originalData.filter((item) => selected.includes(item._id)).map((item) => item.imageUrl);
     try {
-      await toast.promise(albumApi.forceDeleteMany(selected, { oldThumbnailUrls }), {
+      await toast.promise(albumApi.forceDeleteMany(selected, imageList), {
         pending: 'Đang xóa banner...',
         success: 'Xóa banner thành công!',
         error: 'Xóa banner thất bại!',
@@ -229,7 +244,11 @@ export default function AlbumListPage() {
       setAlbumList(albumList.filter((item) => !selected.includes(item._id)));
       setSelected([]);
     } catch (error) {
-      console.log('Failed to delete: ', error);
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
     }
     resetData();
   };
@@ -241,9 +260,9 @@ export default function AlbumListPage() {
   };
 
   // Show Modal force delete
-  const handleOpenModalForceDelete = (id, oldThumbnailUrl) => {
+  const handleOpenModalForceDelete = (id, oldImage) => {
     setIdRow(id);
-    setOldThumbnailUrl(oldThumbnailUrl);
+    setOldImage(oldImage);
     setOpenModalForceDelete(true);
   };
 
@@ -297,7 +316,7 @@ export default function AlbumListPage() {
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, thumbnailUrl, name, genres, artistId, status, createdAt } = row;
+                    const { _id, imageUrl, name, genres, artistId, status, createdAt } = row;
                     const selectedList = selected.indexOf(_id) !== -1;
 
                     return (
@@ -309,7 +328,7 @@ export default function AlbumListPage() {
                         <TableCell component="th" scope="row">
                           <Stack direction="row" alignItems="center" spacing={2}>
                             <img
-                              src={thumbnailUrl}
+                              src={imageUrl}
                               alt="hình ảnh"
                               height={40}
                               style={{
@@ -321,7 +340,7 @@ export default function AlbumListPage() {
                                 {name}
                               </Typography>
                               <Typography color="slategrey" variant="caption" noWrap>
-                                {artistId.name}
+                                {/* {artistId.name} */}
                               </Typography>
                             </Stack>
                           </Stack>
@@ -353,7 +372,7 @@ export default function AlbumListPage() {
                                 </IconButton>
                               </Tooltip>
                               <Tooltip title="Xoá vĩnh viễn" placement="top">
-                                <IconButton onClick={() => handleOpenModalForceDelete(_id, thumbnailUrl)} color="error">
+                                <IconButton onClick={() => handleOpenModalForceDelete(_id, imageUrl)} color="error">
                                   <Iconify icon={'eva:trash-2-fill'} />
                                 </IconButton>
                               </Tooltip>

@@ -32,8 +32,8 @@ export default function UserEditPage() {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
-  const [oldAvatarUrl, setOldAvatarUrl] = useState('');
+  const [image, setImage] = useState('');
+  const [oldImage, setOldImage] = useState('');
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -46,8 +46,8 @@ export default function UserEditPage() {
         setEmail(res.email);
         setRole(res.role);
         setStatus(res.status);
-        setAvatarUrl(res.avatarUrl);
-        setOldAvatarUrl(res.avatarUrl);
+        setImage(res.imageUrl);
+        setOldImage(res.imageUrl);
       } catch (error) {
         console.log(error);
       }
@@ -71,17 +71,25 @@ export default function UserEditPage() {
     formData.append('email', email);
     formData.append('role', role);
     formData.append('status', status);
-    formData.append('avatarUrl', avatarUrl);
-    formData.append('oldAvatarUrl', oldAvatarUrl);
+    formData.append('image', image);
+    formData.append('oldImage', oldImage);
     return formData;
   };
 
   const updateData = async (formData) => {
-    await toast.promise(userApi.update(id, formData), {
-      pending: 'Đang cập nhật người dùng...',
-      success: 'Cập nhật người dùng thành công!',
-      error: 'Cập nhật người dùng thất bại!',
-    });
+    try {
+      await toast.promise(userApi.update(id, formData), {
+        pending: 'Đang cập nhật người dùng...',
+        success: 'Cập nhật người dùng thành công!',
+        error: 'Cập nhật người dùng thất bại!',
+      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
+    }
   };
 
   return (
@@ -99,7 +107,7 @@ export default function UserEditPage() {
         <Grid container spacing={3}>
           <Grid item xs={12} md={4}>
             <Card sx={{ p: 4, pt: 10 }}>
-              <AvatarPreview image={avatarUrl} setImage={setAvatarUrl} />
+              <AvatarPreview image={image} setImage={setImage} />
             </Card>
           </Grid>
           <Grid item xs={12} md={8}>

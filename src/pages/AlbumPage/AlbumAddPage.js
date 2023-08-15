@@ -38,7 +38,7 @@ export default function AlbumAddPage() {
 
   const [status, setStatus] = useState(true);
   const [name, setName] = useState('');
-  const [thumbnailUrl, setThumbnailUrl] = useState('');
+  const [image, setImage] = useState('');
   const [genres, setGenres] = useState([]);
   const [artistId, setArtistId] = useState('');
 
@@ -82,24 +82,31 @@ export default function AlbumAddPage() {
   const createFormData = () => {
     const formData = new FormData();
     formData.append('name', name);
-    formData.append('thumbnailUrl', thumbnailUrl);
-    formData.append('genres', JSON.stringify(genres));
+    formData.append('image', image);
+    formData.append('genres[]', genres);
     formData.append('artistId', artistId);
     formData.append('status', status);
     return formData;
   };
 
   const addData = async (formData) => {
-    await toast.promise(albumApi.add(formData), {
-      pending: 'Đang thêm album...',
-      success: 'Thêm album thành công!',
-      error: 'Thêm album thất bại!',
-    });
+    try {
+      await toast.promise(albumApi.add(formData), {
+        pending: 'Đang thêm album...',
+        success: 'Thêm album thành công!',
+      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
+    }
   };
 
   const resetForm = () => {
     setName('');
-    setThumbnailUrl('');
+    setImage('');
     setGenres([]);
     setArtistId('');
   };
@@ -108,10 +115,7 @@ export default function AlbumAddPage() {
     const {
       target: { value },
     } = event;
-    setGenres(
-      // On autofill we get a stringified value.
-      typeof value === 'string' ? value.split(',') : value
-    );
+    setGenres(typeof value === 'string' ? value.split(',') : value);
   };
 
   return (
@@ -177,7 +181,7 @@ export default function AlbumAddPage() {
                   <Typography variant="subtitle2" mb={2}>
                     Hình ảnh
                   </Typography>
-                  <ThumbnailPreview image={thumbnailUrl} setImage={setThumbnailUrl} />
+                  <ThumbnailPreview image={image} setImage={setImage} />
                 </Stack>
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>

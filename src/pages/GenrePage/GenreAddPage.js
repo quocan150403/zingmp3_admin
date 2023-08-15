@@ -14,7 +14,7 @@ export default function GenreAddPage() {
   const [status, setStatus] = useState(true);
   const [name, setName] = useState('');
   const [row, setRow] = useState(0);
-  const [imageUrl, setImageUrl] = useState('');
+  const [image, setImage] = useState('');
 
   const handleFormSubmit = async () => {
     try {
@@ -30,22 +30,29 @@ export default function GenreAddPage() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('row', row);
-    formData.append('imageUrl', imageUrl);
+    formData.append('image', image);
     return formData;
   };
 
   const addData = async (formData) => {
-    await toast.promise(genreApi.add(formData), {
-      pending: 'Đang thêm thể loại...',
-      success: 'Thêm thể loại thành công!',
-      error: 'Thêm thể loại thất bại!',
-    });
+    try {
+      await toast.promise(genreApi.add(formData), {
+        pending: 'Đang thêm thể loại...',
+        success: 'Thêm thể loại thành công!',
+      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
+    }
   };
 
   const resetForm = () => {
     setName('');
     setRow(0);
-    setImageUrl('');
+    setImage('');
   };
 
   return (
@@ -87,7 +94,7 @@ export default function GenreAddPage() {
                   <Typography variant="subtitle2" mb={2}>
                     Hình ảnh
                   </Typography>
-                  <ThumbnailPreview image={imageUrl} setImage={setImageUrl} />
+                  <ThumbnailPreview image={image} setImage={setImage} />
                 </Stack>
               </Stack>
               <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>

@@ -43,15 +43,15 @@ export default function GalleryEditPage() {
 
   const [status, setStatus] = useState(true);
   const [name, setName] = useState('');
-  const [thumbnailUrl, setThumbnailUrl] = useState('');
-  const [oldThumbnailUrl, setOldThumbnailUrl] = useState('');
+  const [image, setImage] = useState('');
+  const [oldImage, setOldImage] = useState('');
 
   const [albumId, setAlbumId] = useState('');
   const [artists, setArtists] = useState([]);
   const [composers, setComposers] = useState([]);
   const [duration, setDuration] = useState(0);
-  const [audioUrl, setAudioUrl] = useState(null);
-  const [oldAudioUrl, setOldAudioUrl] = useState(null);
+  const [audio, setAudio] = useState(null);
+  const [oldAudio, setOldAudio] = useState(null);
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -85,14 +85,14 @@ export default function GalleryEditPage() {
       try {
         const res = await songApi.getById(id);
         setName(res.name);
-        setThumbnailUrl(res.thumbnailUrl);
-        setOldThumbnailUrl(res.thumbnailUrl);
+        setImage(res.imageUrl);
+        setOldImage(res.imageUrl);
         setAlbumId(res.albumId);
         setArtists(res.artists);
         setComposers(res.composers);
         setDuration(res.duration);
-        setAudioUrl(res.audioUrl);
-        setOldAudioUrl(res.audioUrl);
+        setAudio(res.audio);
+        setOldAudio(res.audio);
       } catch (error) {
         console.log(error);
       }
@@ -113,26 +113,33 @@ export default function GalleryEditPage() {
   const createFormData = () => {
     const formData = new FormData();
     formData.append('name', name);
-    formData.append('thumbnailUrl', thumbnailUrl);
-    formData.append('oldThumbnailUrl', oldThumbnailUrl);
+    formData.append('image', image);
+    formData.append('oldImage', oldImage);
 
     formData.append('albumId', albumId);
-    formData.append('artists', JSON.stringify(artists));
-    formData.append('composers', JSON.stringify(composers));
+    formData.append('artists[]', artists);
+    formData.append('composers[]', composers);
     formData.append('duration', duration);
-    formData.append('audioUrl', audioUrl);
-    formData.append('oldAudioUrl', oldAudioUrl);
-
+    formData.append('audio', audio);
+    formData.append('oldAudio', oldAudio);
     formData.append('status', status);
     return formData;
   };
 
   const updateData = async (formData) => {
-    await toast.promise(songApi.update(id, formData), {
-      pending: 'Đang cập nhật bài hát...',
-      success: 'Cập nhật bài hát thành công!',
-      error: 'Cập nhật bài hát thất bại!',
-    });
+    try {
+      await toast.promise(songApi.update(id, formData), {
+        pending: 'Đang cập nhật bài hát...',
+        success: 'Cập nhật bài hát thành công!',
+        error: 'Cập nhật bài hát thất bại!',
+      });
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        toast.error(error.response.data.error);
+      } else {
+        toast.error('Đã xảy ra lỗi');
+      }
+    }
   };
 
   const handleChangeArtist = (event) => {
@@ -146,7 +153,7 @@ export default function GalleryEditPage() {
   };
 
   const handleChangeAudio = (newValue) => {
-    setAudioUrl(newValue);
+    setAudio(newValue);
   };
 
   return (
@@ -182,7 +189,7 @@ export default function GalleryEditPage() {
                   <Typography variant="subtitle2" mb={2}>
                     Hình ảnh
                   </Typography>
-                  <ThumbnailPreview image={thumbnailUrl} setImage={setThumbnailUrl} />
+                  <ThumbnailPreview image={image} setImage={setImage} />
                 </Stack>
               </Stack>
             </Card>
@@ -278,7 +285,7 @@ export default function GalleryEditPage() {
 
           <Grid item xs={12} md={8}>
             <Card sx={{ p: 3 }}>
-              <MuiFileInput fullWidth value={audioUrl} onChange={handleChangeAudio} />
+              <MuiFileInput fullWidth value={audio} onChange={handleChangeAudio} />
             </Card>
           </Grid>
         </Grid>
