@@ -28,9 +28,9 @@ const userApi = {
       },
     }),
   restore: (id) => axiosClient.patch(`${url}/restore/${id}`),
-  forceDelete: (id, oldImage) =>
+  forceDelete: (id, image) =>
     axiosClient.delete(`${url}/force/${id}`, {
-      data: { oldImage },
+      data: { image },
     }),
   forceDeleteMany: (ids, imageList) =>
     axiosClient.delete(`${url}/force-many`, {

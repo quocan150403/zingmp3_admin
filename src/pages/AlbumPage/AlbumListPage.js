@@ -316,7 +316,7 @@ export default function AlbumListPage() {
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, imageUrl, name, genres, artistId, status, createdAt } = row;
+                    const { _id, imageUrl, name, genres, artists, status, createdAt } = row;
                     const selectedList = selected.indexOf(_id) !== -1;
 
                     return (
@@ -340,7 +340,7 @@ export default function AlbumListPage() {
                                 {name}
                               </Typography>
                               <Typography color="slategrey" variant="caption" noWrap>
-                                {/* {artistId.name} */}
+                                {artists.map((item) => item.name).join(', ')}
                               </Typography>
                             </Stack>
                           </Stack>

@@ -97,8 +97,12 @@ export default function ArtistEditPage() {
     formData.append('name', name);
     formData.append('stageName', stageName);
     formData.append('bio', bio);
-    formData.append('genres[]', genres);
-    formData.append('roles[]', roles);
+    genres.forEach((genre, index) => {
+      formData.append(`genres[${index}]`, genre);
+    });
+    roles.forEach((role, index) => {
+      formData.append(`roles[${index}]`, role);
+    });
     formData.append('status', status);
     formData.append('image', image);
     formData.append('oldImage', oldImage);

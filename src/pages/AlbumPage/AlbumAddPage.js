@@ -40,7 +40,7 @@ export default function AlbumAddPage() {
   const [name, setName] = useState('');
   const [image, setImage] = useState('');
   const [genres, setGenres] = useState([]);
-  const [artistId, setArtistId] = useState('');
+  const [artists, setArtists] = useState([]);
 
   const [artistList, setArtistList] = useState([]);
   const [genreList, setGenreList] = useState([]);
@@ -73,7 +73,6 @@ export default function AlbumAddPage() {
     try {
       const formData = createFormData();
       await addData(formData);
-      resetForm();
     } catch (error) {
       console.log(error);
     }
@@ -83,8 +82,12 @@ export default function AlbumAddPage() {
     const formData = new FormData();
     formData.append('name', name);
     formData.append('image', image);
-    formData.append('genres[]', genres);
-    formData.append('artistId', artistId);
+    genres.forEach((genre, index) => {
+      formData.append(`genres[${index}]`, genre);
+    });
+    artists.forEach((artist, index) => {
+      formData.append(`artists[${index}]`, artist);
+    });
     formData.append('status', status);
     return formData;
   };
@@ -95,6 +98,7 @@ export default function AlbumAddPage() {
         pending: 'Đang thêm album...',
         success: 'Thêm album thành công!',
       });
+      resetForm();
     } catch (error) {
       if (error.response && error.response.status === 400) {
         toast.error(error.response.data.error);
@@ -108,7 +112,7 @@ export default function AlbumAddPage() {
     setName('');
     setImage('');
     setGenres([]);
-    setArtistId('');
+    setArtists([]);
   };
 
   const handleChange = (event) => {
@@ -116,6 +120,13 @@ export default function AlbumAddPage() {
       target: { value },
     } = event;
     setGenres(typeof value === 'string' ? value.split(',') : value);
+  };
+
+  const handleChangeArtist = (event) => {
+    const {
+      target: { value },
+    } = event;
+    setArtists(typeof value === 'string' ? value.split(',') : value);
   };
 
   return (
@@ -144,16 +155,17 @@ export default function AlbumAddPage() {
                 />
                 <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
                   <FormControl fullWidth>
-                    <InputLabel id="demo-simple-select-label">Nghệ sĩ</InputLabel>
+                    <InputLabel id="artist-label">Nghệ sĩ</InputLabel>
                     <Select
                       labelId="artist-label"
                       id="artist"
-                      value={artistId}
-                      label="Nghệ sĩ"
-                      onChange={(e) => setArtistId(e.target.value)}
+                      multiple
+                      value={artists}
+                      onChange={handleChangeArtist}
+                      input={<OutlinedInput label="Nghệ sĩ" />}
                     >
                       {artistList.map((item) => (
-                        <MenuItem key={item._id} value={item._id}>
+                        <MenuItem key={item._id} value={item._id} style={getStyles(item._id, item.name, theme)}>
                           {item.name}
                         </MenuItem>
                       ))}

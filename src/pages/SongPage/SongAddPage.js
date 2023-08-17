@@ -19,6 +19,8 @@ import {
   FormControlLabel,
   Switch,
   Button,
+  Autocomplete,
+  Box,
 } from '@mui/material';
 // toast
 import { ToastContainer, toast } from 'react-toastify';
@@ -205,6 +207,44 @@ export default function SongAddPage() {
                     ))}
                   </Select>
                 </FormControl>
+                {/* <Autocomplete
+                  fullWidth
+                  id="album"
+                  options={albumList}
+                  autoHighlight
+                  getOptionLabel={(option) => {
+                    console.log(option);
+                    return option.name;
+                  }}
+                  value={albumId}
+                  isOptionEqualToValue={(option, value) => option._id === value._id}
+                  onChange={(event, newValue) => setAlbumId(newValue._id)}
+                  renderOption={(props, option) => (
+                    <Box component="li" sx={{ '& > img': { mr: 2, flexShrink: 0 } }} {...props}>
+                      <img
+                        loading="lazy"
+                        height="40"
+                        src={option.imageUrl}
+                        srcSet={option.imageUrl}
+                        alt={option.name}
+                        style={{
+                          borderRadius: '4px',
+                        }}
+                      />
+                      {option.name}
+                    </Box>
+                  )}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Chọn album"
+                      inputProps={{
+                        ...params.inputProps,
+                        autoComplete: 'new-password',
+                      }}
+                    />
+                  )}
+                /> */}
                 <TextField
                   fullWidth
                   type="number"

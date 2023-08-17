@@ -28,11 +28,11 @@ const songApi = {
       },
     }),
   restore: (id) => axiosClient.patch(`${url}/restore/${id}`),
-  forceDelete: (id, oldImage, oldAudio) =>
+  forceDelete: (id, image, audio) =>
     axiosClient.delete(`${url}/force/${id}`, {
       data: {
-        oldAudio,
-        oldImage,
+        audio,
+        image,
       },
     }),
   forceDeleteMany: (ids, imageList, audioList) =>

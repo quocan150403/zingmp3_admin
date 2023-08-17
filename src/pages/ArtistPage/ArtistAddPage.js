@@ -73,8 +73,12 @@ export default function ArtistAddPage() {
     formData.append('name', name);
     formData.append('stageName', stageName);
     formData.append('bio', bio);
-    formData.append('genres[]', genres);
-    formData.append('roles[]', roles);
+    genres.forEach((genre, index) => {
+      formData.append(`genres[${index}]`, genre);
+    });
+    roles.forEach((role, index) => {
+      formData.append(`roles[${index}]`, role);
+    });
     formData.append('status', status);
     formData.append('image', image);
     return formData;
@@ -157,7 +161,7 @@ export default function ArtistAddPage() {
                       setGenres(newValue);
                     }}
                     value={genres}
-                    renderInput={(params) => <TextField {...params} label="nghệ sĩ" variant="outlined" />}
+                    renderInput={(params) => <TextField {...params} label="Thể loại âm nhạc" variant="outlined" />}
                   />
                   <Autocomplete
                     id="roles"
