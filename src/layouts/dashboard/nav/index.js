@@ -64,7 +64,7 @@ export default function Nav({ openNav, onCloseNav }) {
 
             <Box sx={{ ml: 2 }}>
               <Typography variant="subtitle2" sx={{ color: 'text.primary' }}>
-                {account.displayName}
+                Quốc An
               </Typography>
 
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
