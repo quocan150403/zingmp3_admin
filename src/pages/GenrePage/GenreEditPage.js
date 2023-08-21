@@ -2,7 +2,18 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 // @mui
-import { Card, Typography, TextField, FormControlLabel, Switch, Container, Stack, Button, Grid } from '@mui/material';
+import {
+  Card,
+  Typography,
+  TextField,
+  FormControlLabel,
+  Switch,
+  Container,
+  Stack,
+  Button,
+  Grid,
+  FormGroup,
+} from '@mui/material';
 // toast
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -13,6 +24,7 @@ import { ThumbnailPreview } from '../../components/image-preview';
 // ----------------------------------------------------------------------
 export default function GenreEditPage() {
   const [status, setStatus] = useState(true);
+  const [isHome, setIsHome] = useState(false);
   const [name, setName] = useState('');
   const [row, setRow] = useState(0);
   const [image, setImage] = useState('');
@@ -30,6 +42,7 @@ export default function GenreEditPage() {
         setImage(res.imageUrl);
         setOldImage(res.imageUrl);
         setStatus(res.status);
+        setIsHome(res.isHome);
       } catch (error) {
         console.log(error);
       }
@@ -54,6 +67,7 @@ export default function GenreEditPage() {
     formData.append('image', image);
     formData.append('oldImage', oldImage);
     formData.append('status', status);
+    formData.append('isHome', isHome);
     return formData;
   };
 
@@ -108,28 +122,41 @@ export default function GenreEditPage() {
                     onChange={(e) => setRow(e.target.value)}
                   />
                 </Stack>
+
                 <Stack>
                   <Typography variant="subtitle2" mb={2}>
                     Hình ảnh
                   </Typography>
                   <ThumbnailPreview image={image} setImage={setImage} />
                 </Stack>
+                <FormGroup>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={isHome}
+                        onChange={(e) => setIsHome(e.target.checked)}
+                        name="home"
+                        color="primary"
+                      />
+                    }
+                    label="Hiển thị ở trang chủ"
+                  />
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={status}
+                        onChange={(e) => setStatus(e.target.checked)}
+                        name="checked"
+                        color="primary"
+                      />
+                    }
+                    label="Trạng thái"
+                  />
+                </FormGroup>
               </Stack>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={status}
-                      onChange={(e) => setStatus(e.target.checked)}
-                      name="checked"
-                      color="primary"
-                    />
-                  }
-                  label="Trạng thái"
-                />
-
+              <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={3}>
                 <Button onClick={handleFormSubmit} size="large" variant="contained" color="inherit">
-                  Lưu thể loại
+                  Thêm thể loại
                 </Button>
               </Stack>
             </Card>

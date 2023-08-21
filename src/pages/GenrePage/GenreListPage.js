@@ -37,6 +37,7 @@ const TABLE_HEAD = [
   { id: 'name', label: 'Tên' },
   { id: 'create', label: 'Ngày tạo' },
   { id: 'row', label: 'Hàng' },
+  { id: 'isHome', label: 'Hiển thị ở trang chủ' },
   { id: 'status', label: 'Trạng thái' },
   { id: '' },
 ];
@@ -317,7 +318,7 @@ export default function GenreListPage() {
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((rowField) => {
-                    const { _id, imageUrl, name, row: rowName, status, createdAt } = rowField;
+                    const { _id, imageUrl, name, row: rowName, isHome, status, createdAt } = rowField;
                     const selectedList = selected.indexOf(_id) !== -1;
 
                     return (
@@ -355,6 +356,10 @@ export default function GenreListPage() {
                         </TableCell>
 
                         <TableCell align="left">{rowName}</TableCell>
+
+                        <TableCell align="left">
+                          <Label color={(isHome && 'primary') || 'default'}>{(isHome && 'active') || 'inactive'}</Label>
+                        </TableCell>
 
                         <TableCell align="left">
                           <Label color={(status && 'success') || 'error'}>{(status && 'active') || 'inactive'}</Label>

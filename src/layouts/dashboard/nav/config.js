@@ -31,6 +31,11 @@ const navConfig = [
     icon: <Iconify icon={'eva:grid-outline'} width={24} height={24} />,
   },
   {
+    title: 'Album',
+    path: '/dashboard/album',
+    icon: <Iconify icon={'eva:browser-outline'} width={24} height={24} />,
+  },
+  {
     title: 'Bài hát',
     path: '/dashboard/song',
     icon: <Iconify icon={'eva:music-outline'} width={24} height={24} />,
@@ -39,11 +44,6 @@ const navConfig = [
     title: 'Nghệ sĩ',
     path: '/dashboard/artist',
     icon: <Iconify icon={'eva:people-outline'} width={24} height={24} />,
-  },
-  {
-    title: 'Album',
-    path: '/dashboard/album',
-    icon: <Iconify icon={'eva:browser-outline'} width={24} height={24} />,
   },
   {
     title: 'Nguời dùng',
