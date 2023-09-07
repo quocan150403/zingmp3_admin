@@ -1,37 +1,55 @@
 import { Helmet } from 'react-helmet-async';
-import { useState } from 'react';
 // @mui
-import { Card, Typography, TextField, FormControlLabel, Switch, Container, Stack, Button, Grid } from '@mui/material';
+import { Card, Typography, Container, Stack, Button, Grid } from '@mui/material';
 // toast
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// form
+import { useForm } from 'react-hook-form';
+import * as yup from 'yup';
+import { yupResolver } from '@hookform/resolvers/yup';
 
+import { CheckboxField, TextInputField, ThumbnailPreview } from '../../components/form';
 import { galleryApi } from '../../api';
-import { ThumbnailPreview } from '../../components/image-preview';
+
+const schema = yup.object().shape({
+  link: yup.string().required('Đường dẫn không được để trống'),
+  order: yup.number().default(0).required('Thứ tự không được để trống'),
+  status: yup.boolean().default(true),
+  image: yup.mixed().test('fileType', 'Vui lòng tải lên một tệp hình ảnh', (value) => {
+    if (!value) return false;
+    const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    return imageTypes.includes(value.type);
+  }),
+});
 
 // ----------------------------------------------------------------------
 export default function GalleryAddPage() {
-  const [status, setStatus] = useState(true);
-  const [link, setLink] = useState('');
-  const [order, setOrder] = useState(0);
-  const [image, setImage] = useState('');
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
-  const handleFormSubmit = async () => {
+  const onSubmit = async (data) => {
     try {
-      const formData = createFormData();
+      const formData = createFormData(data);
       await addData(formData);
-      resetForm();
     } catch (error) {
       console.log(error);
     }
   };
 
-  const createFormData = () => {
+  const createFormData = (data) => {
     const formData = new FormData();
-    formData.append('link', link);
-    formData.append('order', order);
-    formData.append('image', image);
-    formData.append('status', status);
+    formData.append('link', data.link);
+    formData.append('order', data.order);
+    formData.append('image', data.image);
+    formData.append('status', data.status);
     return formData;
   };
 
@@ -50,12 +68,6 @@ export default function GalleryAddPage() {
     }
   };
 
-  const resetForm = () => {
-    setLink('');
-    setOrder(0);
-    setImage('');
-  };
-
   return (
     <>
       <Helmet>
@@ -68,54 +80,51 @@ export default function GalleryAddPage() {
           Thêm banner
         </Typography>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Card sx={{ p: 3 }}>
-              <Stack spacing={3} mb={3} width="100%">
-                <TextField
-                  fullWidth
-                  label="Đường dẫn"
-                  variant="outlined"
-                  name="link"
-                  value={link}
-                  onChange={(e) => setLink(e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  label="Thứ tự"
-                  variant="outlined"
-                  name="order"
-                  type="number"
-                  value={order}
-                  onChange={(e) => setOrder(e.target.value)}
-                />
-                <Stack>
-                  <Typography variant="subtitle2" mb={2}>
-                    Hình ảnh
-                  </Typography>
-                  <ThumbnailPreview image={image} setImage={setImage} />
-                </Stack>
-              </Stack>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={status}
-                      onChange={(e) => setStatus(e.target.checked)}
-                      name="checked"
-                      color="primary"
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+              <Card sx={{ p: 3 }}>
+                <Stack spacing={3} mb={3} width="100%">
+                  <TextInputField
+                    name="link"
+                    inputType="text"
+                    defaultValue=""
+                    label="Nhập đường dẫn"
+                    control={control}
+                    error={!!errors.link}
+                    helperText={errors.link?.message}
+                  />
+                  <TextInputField
+                    name="order"
+                    inputType="number"
+                    label="Nhập thứ tự"
+                    defaultValue={0}
+                    control={control}
+                    error={!!errors.order}
+                    helperText={errors.order?.message}
+                  />
+                  <Stack>
+                    <Typography variant="subtitle2" mb={2}>
+                      Hình ảnh
+                    </Typography>
+                    <ThumbnailPreview
+                      name="image"
+                      form={{ watch, setValue }}
+                      error={!!errors.image}
+                      helperText={errors.image?.message}
                     />
-                  }
-                  label="Trạng thái"
-                />
-
-                <Button onClick={handleFormSubmit} size="large" variant="contained" color="inherit">
-                  Thêm Banner
-                </Button>
-              </Stack>
-            </Card>
+                  </Stack>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
+                  <CheckboxField name="status" label="Trạng thái" control={control} />
+                  <Button type="submit" size="large" variant="contained" color="inherit">
+                    Thêm Banner
+                  </Button>
+                </Stack>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
+        </form>
       </Container>
     </>
   );

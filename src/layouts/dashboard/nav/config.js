@@ -1,18 +1,9 @@
-import MovieFilterTwoToneIcon from '@mui/icons-material/MovieFilterTwoTone';
-import Diversity1TwoToneIcon from '@mui/icons-material/Diversity1TwoTone';
-import WidgetsTwoToneIcon from '@mui/icons-material/WidgetsTwoTone';
-import CommentTwoToneIcon from '@mui/icons-material/CommentTwoTone';
-import ReceiptTwoToneIcon from '@mui/icons-material/ReceiptTwoTone';
-import DesktopWindowsTwoToneIcon from '@mui/icons-material/DesktopWindowsTwoTone';
-import InventoryTwoToneIcon from '@mui/icons-material/InventoryTwoTone';
-import LockPersonTwoToneIcon from '@mui/icons-material/LockPersonTwoTone';
-
 // component
 import SvgColor from '../../../components/svg-color';
 import Iconify from '../../../components/iconify';
 // ----------------------------------------------------------------------
 
-const icon = (name) => <SvgColor src={`/assets/icons/navbar/${name}.svg`} sx={{ width: 1, height: 1 }} />;
+// const icon = (name) => <SvgColor src={`/assets/icons/navbar/${name}.svg`} sx={{ width: 1, height: 1 }} />;
 
 const navConfig = [
   {
