@@ -1,4 +1,5 @@
 import { Outlet } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 // @mui
 import { styled } from '@mui/material/styles';
 // components
@@ -27,6 +28,7 @@ export default function SimpleLayout() {
         <Logo />
       </StyledHeader>
       <Outlet />
+      <ToastContainer />
     </>
   );
 }

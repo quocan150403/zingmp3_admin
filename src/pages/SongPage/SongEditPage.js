@@ -1,98 +1,97 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
-import { MuiFileInput } from 'mui-file-input';
 // @mui
-import { useTheme } from '@mui/material/styles';
-import {
-  Card,
-  Typography,
-  TextField,
-  FormControlLabel,
-  Switch,
-  Container,
-  Stack,
-  Button,
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  InputAdornment,
-  OutlinedInput,
-} from '@mui/material';
+import { Card, Typography, Container, Stack, Button, Grid, InputAdornment } from '@mui/material';
 // toast
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// form
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
+import {
+  CheckboxField,
+  TextInputField,
+  MultiAutocompleteField,
+  ThumbnailPreview,
+  AutocompleteField,
+  AudioFileInput,
+} from '../../components/form';
 import { songApi, artistApi, albumApi } from '../../api';
-import { ThumbnailPreview } from '../../components/image-preview';
 
-function getStyles(name, personName, theme) {
-  return {
-    fontWeight:
-      personName.indexOf(name) === -1 ? theme.typography.fontWeightRegular : theme.typography.fontWeightMedium,
-  };
-}
+const schema = yup.object().shape({
+  name: yup.string().required('Vui lòng nhập tên nghệ sĩ'),
+  lyric: yup.string().required('Vui lòng nhập lời bài hát'),
+  albumId: yup.object().required('Vui lòng chọn album'),
+  status: yup.boolean().default(true),
+  duration: yup.number().required('Vui lòng nhập thời lượng bài hát'),
+  artists: yup
+    .array(yup.object())
+    .min(1, 'Vui lòng chọn ít nhất một nghệ sĩ')
+    .required('Vui lòng chọn ít nhất một nghệ sĩ'),
+  composers: yup
+    .array(yup.object())
+    .min(1, 'Vui lòng chọn ít nhất một tác giả')
+    .required('Vui lòng chọn ít nhất một tác giả'),
+  image: yup.mixed().test('fileType', 'Vui lòng tải lên một tệp hình ảnh', (value) => {
+    if (!value) return false;
+    const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    return imageTypes.includes(value.type);
+  }),
+  audio: yup.mixed().test('fileType', 'Vui lòng tải lên một tệp âm thanh', (value) => {
+    if (!value) return false;
+    const audioTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3'];
+    return audioTypes.includes(value.type);
+  }),
+});
 
 // ----------------------------------------------------------------------
 export default function GalleryEditPage() {
-  const theme = useTheme();
-  const [artistList, setArtistList] = useState([]);
-  const [albumList, setAlbumList] = useState([]);
-
-  const [status, setStatus] = useState(true);
-  const [name, setName] = useState('');
-  const [image, setImage] = useState('');
-  const [oldImage, setOldImage] = useState('');
-
-  const [albumId, setAlbumId] = useState('');
-  const [artists, setArtists] = useState([]);
-  const [composers, setComposers] = useState([]);
-  const [duration, setDuration] = useState(0);
-  const [audio, setAudio] = useState(null);
-  const [oldAudio, setOldAudio] = useState(null);
-
   const { id } = useParams();
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const fetchArtist = async () => {
-      try {
-        const artistData = await artistApi.getQuery();
-        setArtistList(artistData);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchArtist();
-  }, []);
+  const [artistList, setArtistList] = useState([]);
+  const [albumList, setAlbumList] = useState([]);
+  const [oldImage, setOldImage] = useState('');
+  const [oldAudio, setOldAudio] = useState(null);
+  const {
+    control,
+    watch,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
   useEffect(() => {
-    const fetchAlbum = async () => {
+    const fetchData = async () => {
       try {
-        const albumData = await albumApi.getQuery();
+        const [artistData, albumData] = await Promise.all([artistApi.getQuery(), albumApi.getQuery()]);
+        setArtistList(artistData);
         setAlbumList(albumData);
       } catch (error) {
         console.log(error);
       }
     };
-    fetchAlbum();
+    fetchData();
   }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await songApi.getById(id);
-        setName(res.name);
-        setImage(res.imageUrl);
+        setValue('name', res.name);
+        setValue('albumId', res.albumId);
+        setValue('artists', res.artists);
+        setValue('composers', res.composers);
+        setValue('duration', res.duration);
+        setValue('lyric', res.lyric);
+        setValue('status', res.status);
         setOldImage(res.imageUrl);
-        setAlbumId(res.albumId);
-        setArtists(res.artists);
-        setComposers(res.composers);
-        setDuration(res.duration);
-        setAudio(res.audio);
-        setOldAudio(res.audio);
+        setOldAudio(res.audioUrl);
       } catch (error) {
         console.log(error);
       }
@@ -100,29 +99,32 @@ export default function GalleryEditPage() {
     fetchData();
   }, [id]);
 
-  const handleFormSubmit = async () => {
+  const handleFormSubmit = async (data) => {
     try {
-      const formData = createFormData();
+      const formData = createFormData(data);
       await updateData(formData);
       navigate('/dashboard/song');
+      toast.success('Cập nhật bài hát thành công!');
     } catch (error) {
       console.log(error);
     }
   };
 
-  const createFormData = () => {
+  const createFormData = (data) => {
     const formData = new FormData();
-    formData.append('name', name);
-    formData.append('image', image);
-    formData.append('oldImage', oldImage);
-
-    formData.append('albumId', albumId);
-    formData.append('artists[]', artists);
-    formData.append('composers[]', composers);
-    formData.append('duration', duration);
-    formData.append('audio', audio);
-    formData.append('oldAudio', oldAudio);
-    formData.append('status', status);
+    formData.append('name', data.name);
+    formData.append('image', data.image);
+    formData.append('lyric', data.lyric);
+    formData.append('albumId', data.albumId._id);
+    data.artists.forEach((artist, index) => {
+      formData.append(`artists[${index}]`, artist._id);
+    });
+    data.composers.forEach((composer, index) => {
+      formData.append(`composers[${index}]`, composer._id);
+    });
+    formData.append('duration', data.duration);
+    formData.append('audio', data.audio);
+    formData.append('status', data.status);
     return formData;
   };
 
@@ -130,8 +132,6 @@ export default function GalleryEditPage() {
     try {
       await toast.promise(songApi.update(id, formData), {
         pending: 'Đang cập nhật bài hát...',
-        success: 'Cập nhật bài hát thành công!',
-        error: 'Cập nhật bài hát thất bại!',
       });
     } catch (error) {
       if (error.response && error.response.status === 400) {
@@ -142,176 +142,161 @@ export default function GalleryEditPage() {
     }
   };
 
-  const handleChangeArtist = (event) => {
-    const { value } = event.target;
-    setArtists(typeof value === 'string' ? value.split(',') : value);
-  };
-
-  const handleChangeComposer = (event) => {
-    const { value } = event.target;
-    setComposers(typeof value === 'string' ? value.split(',') : value);
-  };
-
-  const handleChangeAudio = (newValue) => {
-    setAudio(newValue);
-  };
-
   return (
     <>
       <Helmet>
         <title> Cập Nhật bài hát | ZingMp3 </title>
       </Helmet>
 
-      <Container>
-        <ToastContainer />
-        <Typography variant="h4" mb={5}>
-          Cập nhật bài hát
-        </Typography>
-        {/* Info Basic */}
-        <Grid container spacing={3} mb={3}>
-          <Grid item xs={12} md={4}>
-            <Typography variant="h6">Chi tiết bài hát</Typography>
-            <Typography variant="caption">Nhập tên bài hát, hình ảnh</Typography>
-          </Grid>
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
+        <Container>
+          <Typography variant="h4" mb={5}>
+            Cập nhật Bài Hát
+          </Typography>
 
-          <Grid item xs={12} md={8}>
-            <Card sx={{ p: 3 }}>
-              <Stack spacing={3} width="100%">
-                <TextField
-                  fullWidth
-                  label="Tên bài hát"
-                  variant="outlined"
-                  name="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <Stack>
-                  <Typography variant="subtitle2" mb={2}>
-                    Hình ảnh
-                  </Typography>
-                  <ThumbnailPreview image={image} setImage={setImage} />
-                </Stack>
-              </Stack>
-            </Card>
-          </Grid>
-        </Grid>
+          {/* Info Basic */}
+          <Grid container spacing={3} mb={3}>
+            <Grid item xs={12} md={4}>
+              <Typography variant="h6">Chi tiết bài hát</Typography>
+              <Typography variant="caption">Nhập tên bài hát, hình ảnh</Typography>
+            </Grid>
 
-        {/* Properties */}
-        <Grid container spacing={3} mb={3}>
-          <Grid item xs={12} md={4}>
-            <Typography variant="h6">Thuộc tính</Typography>
-            <Typography variant="caption">Nhập thời lượng,chủ đề,...</Typography>
-          </Grid>
-
-          <Grid item xs={12} md={8}>
-            <Card sx={{ p: 3 }}>
-              <Stack spacing={2} mb={3} direction="row" justifyContent="space-between" width="100%">
-                <FormControl fullWidth>
-                  <InputLabel id="album-label">Album</InputLabel>
-                  <Select
-                    labelId="album-label"
-                    id="album"
-                    value={albumId}
-                    label="Album"
-                    onChange={(e) => setAlbumId(e.target.value)}
-                  >
-                    {albumList.map((item) => (
-                      <MenuItem value={item._id} key={item._id}>
-                        {item.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Thời lượng"
-                  variant="outlined"
-                  name="duration"
-                  value={duration}
-                  onChange={(e) => setDuration(e.target.value)}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">Phút</InputAdornment>,
-                  }}
-                />
-              </Stack>
-
-              <Stack spacing={2} mb={3} direction="row" justifyContent="space-between" width="100%">
-                <FormControl fullWidth>
-                  <InputLabel id="artist-label">Nghệ sĩ trình bày</InputLabel>
-                  <Select
-                    labelId="artist-label"
-                    id="artist"
-                    multiple
-                    value={artists}
-                    onChange={handleChangeArtist}
-                    input={<OutlinedInput label="Nghệ sĩ trình bày" />}
-                  >
-                    {artistList.map((item) => (
-                      <MenuItem key={item._id} value={item._id} style={getStyles(item._id, item.name, theme)}>
-                        {item.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl fullWidth>
-                  <InputLabel id="composer-label">Sáng tác</InputLabel>
-                  <Select
-                    labelId="composer-label"
-                    id="composer"
-                    multiple
-                    value={composers}
-                    onChange={handleChangeComposer}
-                    input={<OutlinedInput label="Sáng tác" />}
-                  >
-                    {artistList.map((item) => (
-                      <MenuItem key={item._id} value={item._id} style={getStyles(item._id, item.name, theme)}>
-                        {item.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Stack>
-            </Card>
-          </Grid>
-        </Grid>
-
-        {/* File */}
-        <Grid container spacing={3} mb={3}>
-          <Grid item xs={12} md={4}>
-            <Typography variant="h6">Upload bài hát</Typography>
-            <Typography variant="caption">Chọn file bài hát</Typography>
-          </Grid>
-
-          <Grid item xs={12} md={8}>
-            <Card sx={{ p: 3 }}>
-              <MuiFileInput fullWidth value={audio} onChange={handleChangeAudio} />
-            </Card>
-          </Grid>
-        </Grid>
-
-        <Grid container spacing={3} justifyContent="flex-end" mb={3}>
-          <Grid item xs={12} md={8}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={status}
-                    onChange={(e) => setStatus(e.target.checked)}
-                    name="checked"
-                    color="primary"
+            <Grid item xs={12} md={8}>
+              <Card sx={{ p: 3 }}>
+                <Stack spacing={3} width="100%">
+                  <TextInputField
+                    name="name"
+                    inputType="text"
+                    defaultValue=""
+                    label="Nhập tên bài hát"
+                    control={control}
+                    error={!!errors.name}
+                    helperText={errors.name?.message}
                   />
-                }
-                label="Trạng thái"
-              />
-
-              <Button onClick={handleFormSubmit} size="large" variant="contained" color="inherit">
-                Lưu bài hát
-              </Button>
-            </Stack>
+                  <Stack>
+                    <Typography variant="subtitle2" mb={2}>
+                      Hình ảnh
+                    </Typography>
+                    <ThumbnailPreview
+                      name="image"
+                      imageUrl={oldImage}
+                      form={{ watch, setValue }}
+                      error={!!errors.image}
+                      helperText={errors.image?.message}
+                    />
+                  </Stack>
+                </Stack>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
-      </Container>
+
+          {/* Properties */}
+          <Grid container spacing={3} mb={3}>
+            <Grid item xs={12} md={4}>
+              <Typography variant="h6">Thuộc tính</Typography>
+              <Typography variant="caption">Nhập thời lượng,chủ đề,...</Typography>
+            </Grid>
+
+            <Grid item xs={12} md={8}>
+              <Card sx={{ p: 3 }}>
+                <Stack spacing={2} mb={3} direction="row" justifyContent="space-between" width="100%">
+                  <AutocompleteField
+                    label="Chọn album"
+                    name="albumId"
+                    options={albumList}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) => option._id === value._id}
+                    control={control}
+                    error={!!errors.albumId}
+                    helperText={errors.albumId?.message}
+                  />
+                  <TextInputField
+                    name="duration"
+                    inputType="number"
+                    defaultValue={0}
+                    label="Thời lượng"
+                    control={control}
+                    error={!!errors.duration}
+                    helperText={errors.duration?.message}
+                    InputProps={{
+                      endAdornment: <InputAdornment position="end">Phút</InputAdornment>,
+                    }}
+                  />
+                </Stack>
+
+                <Stack spacing={2} mb={3} direction="row" justifyContent="space-between" width="100%">
+                  <MultiAutocompleteField
+                    name="artists"
+                    label="Chọn nghệ sĩ trình bày"
+                    options={artistList}
+                    control={control}
+                    defaultValue={[]}
+                    error={!!errors.artists}
+                    helperText={errors.artists?.message}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) => option._id === value._id}
+                  />
+                  <MultiAutocompleteField
+                    name="composers"
+                    label="Chọn tác giả sáng tác"
+                    options={artistList}
+                    control={control}
+                    defaultValue={[]}
+                    error={!!errors.composers}
+                    helperText={errors.composers?.message}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) => option._id === value._id}
+                  />
+                </Stack>
+
+                <TextInputField
+                  rows={7}
+                  multiline
+                  name="lyric"
+                  inputType="text"
+                  defaultValue=""
+                  label="Nhập lời bài hát"
+                  control={control}
+                  error={!!errors.lyric}
+                  helperText={errors.lyric?.message}
+                />
+              </Card>
+            </Grid>
+          </Grid>
+
+          {/* File */}
+          <Grid container spacing={3} mb={3}>
+            <Grid item xs={12} md={4}>
+              <Typography variant="h6">Upload bài hát</Typography>
+              <Typography variant="caption">Chọn file bài hát</Typography>
+            </Grid>
+
+            <Grid item xs={12} md={8}>
+              <Card sx={{ p: 3 }}>
+                <AudioFileInput
+                  name="audio"
+                  audioUrl={oldAudio}
+                  form={{ watch, setValue }}
+                  error={!!errors.audio}
+                  helperText={errors.audio?.message}
+                />
+              </Card>
+            </Grid>
+          </Grid>
+
+          <Grid container spacing={3} justifyContent="flex-end" mb={3}>
+            <Grid item xs={12} md={8}>
+              <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
+                <CheckboxField name="status" label="Trạng thái" control={control} />
+
+                <Button type="submit" size="large" variant="contained" color="inherit">
+                  Lưu bài hát
+                </Button>
+              </Stack>
+            </Grid>
+          </Grid>
+        </Container>
+      </form>
     </>
   );
 }

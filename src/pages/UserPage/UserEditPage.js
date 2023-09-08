@@ -99,7 +99,6 @@ export default function UserEditPage() {
       </Helmet>
 
       <Container>
-        <ToastContainer />
         <Typography variant="h4" mb={5}>
           Cập Nhật Người Dùng
         </Typography>

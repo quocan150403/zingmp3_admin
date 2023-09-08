@@ -411,7 +411,6 @@ export default function AlbumListPage() {
         </Card>
       </Container>
 
-      <ToastContainer />
       <PopoverMenu
         open={open}
         onClosePopover={() => setOpen(null)}

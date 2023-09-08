@@ -2,21 +2,42 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 // @mui
-import { Card, Typography, TextField, FormControlLabel, Switch, Container, Stack, Button, Grid } from '@mui/material';
+import { Card, Typography, Container, Stack, Button, Grid } from '@mui/material';
 // toast
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// form
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 import { galleryApi } from '../../api';
-import { ThumbnailPreview } from '../../components/image-preview';
+import { TextInputField, CheckboxField, ThumbnailPreview } from '../../components/form';
+
+const schema = yup.object().shape({
+  link: yup.string().required('Đường dẫn không được để trống'),
+  order: yup.number().default(0).required('Thứ tự không được để trống'),
+  status: yup.boolean().default(true),
+  image: yup.mixed().test('fileType', 'Vui lòng tải lên một tệp hình ảnh', (value) => {
+    if (!value) return true;
+    const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    return imageTypes.includes(value.type);
+  }),
+});
 
 // ----------------------------------------------------------------------
 export default function GalleryEditPage() {
-  const [status, setStatus] = useState(true);
-  const [link, setLink] = useState('');
-  const [order, setOrder] = useState(0);
-  const [image, setImage] = useState('');
-  const [oldImage, setOldImage] = useState('');
+  const {
+    control,
+    watch,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+
+  const [oldImage, setOldImage] = useState();
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -25,11 +46,11 @@ export default function GalleryEditPage() {
     const fetchData = async () => {
       try {
         const res = await galleryApi.getById(id);
-        setLink(res.link);
-        setOrder(res.order);
+        setValue('link', res.link);
+        setValue('order', res.order);
+        setValue('status', res.status);
+        setValue('link', res.link);
         setOldImage(res.imageUrl);
-        setImage(res.imageUrl);
-        setStatus(res.status);
       } catch (error) {
         console.log(error);
       }
@@ -37,23 +58,24 @@ export default function GalleryEditPage() {
     fetchData();
   }, [id]);
 
-  const handleFormSubmit = async () => {
+  const onSubmit = async (data) => {
     try {
-      const formData = createFormData();
+      const formData = createFormData(data);
       await updateData(formData);
       navigate('/dashboard/gallery');
+      toast.success('Cập nhật banner thành công!');
     } catch (error) {
       console.log(error);
     }
   };
 
-  const createFormData = () => {
+  const createFormData = (data) => {
     const formData = new FormData();
-    formData.append('link', link);
-    formData.append('order', order);
-    formData.append('image', image);
+    formData.append('link', data.link);
+    formData.append('order', data.order);
+    formData.append('image', data.image);
     formData.append('oldImage', oldImage);
-    formData.append('status', status);
+    formData.append('status', data.status);
     return formData;
   };
 
@@ -61,8 +83,6 @@ export default function GalleryEditPage() {
     try {
       await toast.promise(galleryApi.update(id, formData), {
         pending: 'Đang cập nhật banner...',
-        success: 'Cập nhật banner thành công!',
-        error: 'Cập nhật banner thất bại!',
       });
     } catch (error) {
       if (error.response && error.response.status === 400) {
@@ -80,59 +100,56 @@ export default function GalleryEditPage() {
       </Helmet>
 
       <Container>
-        <ToastContainer />
         <Typography variant="h4" mb={5}>
           Cập nhật banner
         </Typography>
-
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Card sx={{ p: 3 }}>
-              <Stack spacing={3} mb={3} width="100%">
-                <TextField
-                  fullWidth
-                  label="Đường dẫn"
-                  variant="outlined"
-                  name="link"
-                  value={link}
-                  onChange={(e) => setLink(e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  label="Thứ tự"
-                  variant="outlined"
-                  name="order"
-                  type="number"
-                  value={order}
-                  onChange={(e) => setOrder(e.target.value)}
-                />
-                <Stack>
-                  <Typography variant="subtitle2" mb={2}>
-                    Hình ảnh
-                  </Typography>
-                  <ThumbnailPreview image={image} setImage={setImage} />
-                </Stack>
-              </Stack>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={status}
-                      onChange={(e) => setStatus(e.target.checked)}
-                      name="checked"
-                      color="primary"
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+              <Card sx={{ p: 3 }}>
+                <Stack spacing={3} mb={3} width="100%">
+                  <TextInputField
+                    name="link"
+                    inputType="text"
+                    defaultValue=""
+                    label="Nhập đường dẫn"
+                    control={control}
+                    error={!!errors.link}
+                    helperText={errors.link?.message}
+                  />
+                  <TextInputField
+                    name="order"
+                    inputType="number"
+                    label="Nhập thứ tự"
+                    defaultValue={0}
+                    control={control}
+                    error={!!errors.order}
+                    helperText={errors.order?.message}
+                  />
+                  <Stack>
+                    <Typography variant="subtitle2" mb={2}>
+                      Hình ảnh
+                    </Typography>
+                    <ThumbnailPreview
+                      name="image"
+                      form={{ watch, setValue }}
+                      imageUrl={oldImage}
+                      error={!!errors.image}
+                      helperText={errors.image?.message}
                     />
-                  }
-                  label="Trạng thái"
-                />
+                  </Stack>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
+                  <CheckboxField name="status" label="Trạng thái" control={control} />
 
-                <Button onClick={handleFormSubmit} size="large" variant="contained" color="inherit">
-                  Lưu banner
-                </Button>
-              </Stack>
-            </Card>
+                  <Button type="submit" size="large" variant="contained" color="inherit">
+                    Lưu banner
+                  </Button>
+                </Stack>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
+        </form>
       </Container>
     </>
   );

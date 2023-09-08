@@ -12,7 +12,16 @@ TextInputField.propTypes = {
   inputType: PropTypes.string,
 };
 
-export default function TextInputField({ name, control, defaultValue, label, error, helperText, inputType = 'text' }) {
+export default function TextInputField({
+  name,
+  control,
+  defaultValue,
+  label,
+  error,
+  helperText,
+  inputType = 'text',
+  ...props
+}) {
   return (
     <Controller
       name={name}
@@ -21,6 +30,8 @@ export default function TextInputField({ name, control, defaultValue, label, err
       render={({ field }) => (
         <TextField
           {...field}
+          {...props}
+          fullWidth
           type={inputType}
           label={label}
           variant="outlined"

@@ -37,7 +37,6 @@ import { renderArray } from '../../utils/formatOther';
 const TABLE_HEAD = [
   { id: 'stageName', label: 'Thông tin nghệ sĩ' },
   { id: 'create', label: 'Ngày tạo' },
-  { id: 'genres', label: 'Thể loại' },
   { id: 'followers', label: 'lượt theo dõi' },
   { id: 'status', label: 'Trạng thái' },
   { id: '' },
@@ -321,7 +320,7 @@ export default function ArtistListPage() {
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, name, roles, imageUrl, genres, followers, status, createdAt } = row;
+                    const { _id, name, roles, imageUrl, followers, status, createdAt } = row;
                     const selectedList = selected.indexOf(_id) !== -1;
 
                     return (
@@ -355,7 +354,6 @@ export default function ArtistListPage() {
                           </Stack>
                         </TableCell>
 
-                        <TableCell align="left">{renderArray(genres)}</TableCell>
                         <TableCell align="left">{followers}</TableCell>
 
                         <TableCell align="left">
@@ -410,7 +408,6 @@ export default function ArtistListPage() {
         </Card>
       </Container>
 
-      <ToastContainer />
       <PopoverMenu
         open={open}
         onClosePopover={() => setOpen(null)}

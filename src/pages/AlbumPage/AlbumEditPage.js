@@ -2,86 +2,78 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 // @mui
-import { useTheme } from '@mui/material/styles';
-import {
-  Card,
-  Typography,
-  TextField,
-  FormControlLabel,
-  Switch,
-  Container,
-  Stack,
-  Button,
-  Grid,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  OutlinedInput,
-} from '@mui/material';
+import { Card, Typography, Container, Stack, Button, Grid } from '@mui/material';
 // toast
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// form
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
+// api
 import { artistApi, albumApi, genreApi } from '../../api';
-import { ThumbnailPreview } from '../../components/image-preview';
+// comp
+import { TextInputField, CheckboxField, ThumbnailPreview, MultiAutocompleteField } from '../../components/form';
 
-function getStyles(name, personName, theme) {
-  return {
-    fontWeight:
-      personName.indexOf(name) === -1 ? theme.typography.fontWeightRegular : theme.typography.fontWeightMedium,
-  };
-}
+const schema = yup.object().shape({
+  name: yup.string().required('Vui lòng nhập tên nghệ sĩ'),
+  status: yup.boolean().default(true),
+  genres: yup
+    .array(yup.object())
+    .min(1, 'Vui lòng chọn ít nhất một thể loại')
+    .required('Vui lòng chọn ít nhất một thể loại'),
+  artists: yup
+    .array(yup.object())
+    .min(1, 'Vui lòng chọn ít nhất một nghệ sĩ')
+    .required('Vui lòng chọn ít nhất một nghệ sĩ'),
+  image: yup.mixed().test('fileType', 'Vui lòng tải lên một tệp hình ảnh', (value) => {
+    if (!value) return true;
+    const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    return imageTypes.includes(value.type);
+  }),
+});
 // ----------------------------------------------------------------------
 export default function AlbumEditPage() {
-  const theme = useTheme();
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const [status, setStatus] = useState(true);
-  const [name, setName] = useState('');
-  const [image, setImage] = useState('');
-  const [oldImage, setOldImage] = useState('');
-  const [genres, setGenres] = useState([]);
-  const [artists, setArtists] = useState([]);
-
+  const [oldImage, setOldImage] = useState();
   const [artistList, setArtistList] = useState([]);
   const [genreList, setGenreList] = useState([]);
+  const {
+    control,
+    watch,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
   useEffect(() => {
-    const fetchArtist = async () => {
+    const fetchData = async () => {
       try {
         const artistData = await artistApi.getQuery();
-        setArtistList(artistData);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchArtist();
-  }, []);
-
-  useEffect(() => {
-    const fetchGenre = async () => {
-      try {
         const genreData = await genreApi.getQuery();
+        setArtistList(artistData);
         setGenreList(genreData);
       } catch (error) {
         console.log(error);
       }
     };
-    fetchGenre();
+    fetchData();
   }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await albumApi.getById(id);
-        setName(res.name);
-        setImage(res.imageUrl);
+        setValue('name', res.name);
+        setValue('artists', res.artists);
+        setValue('genres', res.genres);
+        setValue('status', res.status);
         setOldImage(res.imageUrl);
-        setGenres(res.genres);
-        setArtists(res.artists);
-        setStatus(res.status);
       } catch (error) {
         console.log(error);
       }
@@ -89,36 +81,35 @@ export default function AlbumEditPage() {
     fetchData();
   }, [id]);
 
-  const handleFormSubmit = async () => {
+  const handleFormSubmit = async (data) => {
     try {
-      const formData = createFormData();
+      const formData = createFormData(data);
       await updateData(formData);
       navigate('/dashboard/album');
+      toast.success('Cập nhật album thành công!');
     } catch (error) {
       console.log(error);
     }
   };
 
-  const createFormData = () => {
+  const createFormData = (data) => {
     const formData = new FormData();
-    formData.append('name', name);
-    formData.append('image', image);
-    formData.append('oldImage', oldImage);
-    genres.forEach((genre, index) => {
-      formData.append(`genres[${index}]`, genre);
+    formData.append('name', data.name);
+    formData.append('image', data.image);
+    data.genres.forEach((genre, index) => {
+      formData.append(`genres[${index}]`, genre._id);
     });
-    artists.forEach((artist, index) => {
-      formData.append(`artists[${index}]`, artist);
+    data.artists.forEach((artist, index) => {
+      formData.append(`artists[${index}]`, artist._id);
     });
-    formData.append('status', status);
+    formData.append('status', data.status);
     return formData;
   };
 
   const updateData = async (formData) => {
     try {
       await toast.promise(albumApi.update(id, formData), {
-        pending: 'Đang cập nhật banner...',
-        success: 'Cập nhật banner thành công!',
+        pending: 'Đang cập nhật album...',
       });
     } catch (error) {
       if (error.response && error.response.status === 400) {
@@ -129,20 +120,6 @@ export default function AlbumEditPage() {
     }
   };
 
-  const handleChange = (event) => {
-    const {
-      target: { value },
-    } = event;
-    setGenres(typeof value === 'string' ? value.split(',') : value);
-  };
-
-  const handleChangeArtist = (event) => {
-    const {
-      target: { value },
-    } = event;
-    setArtists(typeof value === 'string' ? value.split(',') : value);
-  };
-
   return (
     <>
       <Helmet>
@@ -150,86 +127,74 @@ export default function AlbumEditPage() {
       </Helmet>
 
       <Container>
-        <ToastContainer />
         <Typography variant="h4" mb={5}>
-          Cập nhật banner
+          Cập nhật Album
         </Typography>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Card sx={{ p: 3 }}>
-              <Stack spacing={3} mb={3} width="100%">
-                <TextField
-                  fullWidth
-                  label="Tên album"
-                  variant="outlined"
-                  name="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-                <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                  <FormControl fullWidth>
-                    <InputLabel id="artist-label">Nghệ sĩ</InputLabel>
-                    <Select
-                      labelId="artist-label"
-                      id="artist"
-                      multiple
-                      value={artists}
-                      onChange={handleChangeArtist}
-                      input={<OutlinedInput label="Nghệ sĩ" />}
-                    >
-                      {artistList.map((item) => (
-                        <MenuItem key={item._id} value={item._id} style={getStyles(item._id, item.name, theme)}>
-                          {item.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                  <FormControl fullWidth>
-                    <InputLabel id="genre-label">Thể loại</InputLabel>
-                    <Select
-                      labelId="genre-label"
-                      id="genre"
-                      multiple
-                      value={genres}
-                      onChange={handleChange}
-                      input={<OutlinedInput label="Thể loại" />}
-                    >
-                      {genreList.map((item) => (
-                        <MenuItem key={item._id} value={item._id} style={getStyles(item._id, item.name, theme)}>
-                          {item.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Stack>
-                <Stack>
-                  <Typography variant="subtitle2" mb={2}>
-                    Hình ảnh
-                  </Typography>
-                  <ThumbnailPreview image={image} setImage={setImage} />
-                </Stack>
-              </Stack>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={status}
-                      onChange={(e) => setStatus(e.target.checked)}
-                      name="checked"
-                      color="primary"
+        <form onSubmit={handleSubmit(handleFormSubmit)}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+              <Card sx={{ p: 3 }}>
+                <Stack spacing={3} mb={3} width="100%">
+                  <TextInputField
+                    name="name"
+                    inputType="text"
+                    defaultValue=""
+                    label="Nhập tên album"
+                    control={control}
+                    error={!!errors.name}
+                    helperText={errors.name?.message}
+                  />
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                    <MultiAutocompleteField
+                      name="genres"
+                      label="Chọn thể loại"
+                      limitTags={2}
+                      options={genreList}
+                      control={control}
+                      defaultValue={[]}
+                      error={!!errors.genres}
+                      helperText={errors.genres?.message}
+                      getOptionLabel={(option) => option.name}
+                      isOptionEqualToValue={(option, value) => option._id === value._id}
                     />
-                  }
-                  label="Trạng thái"
-                />
+                    <MultiAutocompleteField
+                      name="artists"
+                      label="Chọn nghệ sĩ tham gia"
+                      limitTags={2}
+                      options={artistList}
+                      control={control}
+                      defaultValue={[]}
+                      error={!!errors.artists}
+                      helperText={errors.artists?.message}
+                      getOptionLabel={(option) => option.name}
+                      isOptionEqualToValue={(option, value) => option._id === value._id}
+                    />
+                  </Stack>
+                  <Stack>
+                    <Typography variant="subtitle2" mb={2}>
+                      Hình ảnh
+                    </Typography>
+                    <ThumbnailPreview
+                      name="image"
+                      form={{ watch, setValue }}
+                      error={!!errors.image}
+                      imageUrl={oldImage}
+                      helperText={errors.image?.message}
+                    />
+                  </Stack>
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
+                  <CheckboxField name="status" label="Trạng thái" control={control} />
 
-                <Button onClick={handleFormSubmit} size="large" variant="contained" color="inherit">
-                  Lưu album
-                </Button>
-              </Stack>
-            </Card>
+                  <Button type="submit" size="large" variant="contained" color="inherit">
+                    Lưu album
+                  </Button>
+                </Stack>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
+        </form>
       </Container>
     </>
   );

@@ -27,9 +27,10 @@ const schema = yup.object().shape({
 export default function GalleryAddPage() {
   const {
     control,
-    handleSubmit,
+    reset,
     watch,
     setValue,
+    handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
@@ -39,6 +40,7 @@ export default function GalleryAddPage() {
     try {
       const formData = createFormData(data);
       await addData(formData);
+      reset();
     } catch (error) {
       console.log(error);
     }
@@ -75,7 +77,6 @@ export default function GalleryAddPage() {
       </Helmet>
 
       <Container>
-        <ToastContainer />
         <Typography variant="h4" mb={5}>
           Thêm banner
         </Typography>

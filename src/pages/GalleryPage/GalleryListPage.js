@@ -404,7 +404,6 @@ export default function GalleryListPage() {
         </Card>
       </Container>
 
-      <ToastContainer />
       <PopoverMenu
         open={open}
         onClosePopover={() => setOpen(null)}

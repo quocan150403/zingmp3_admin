@@ -1,26 +1,16 @@
 import { Helmet } from 'react-helmet-async';
-import { useState } from 'react';
 // @mui
-import {
-  Card,
-  Typography,
-  TextField,
-  FormControlLabel,
-  Switch,
-  Container,
-  Stack,
-  Button,
-  Grid,
-  Autocomplete,
-} from '@mui/material';
+import { Card, Typography, Container, Stack, Button, Grid } from '@mui/material';
 // toast
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// form
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
 import { artistApi } from '../../api';
-import { AvatarPreview } from '../../components/image-preview';
-
-const GENGRES = ['Trữ tình', 'Nhạc trẻ', 'Rap Việt', 'Nhạc trịnh', 'Pop', 'Rock', 'EDM', 'Indie', 'Khác'];
+import { CheckboxField, TextInputField, AvatarPreview, MultiAutocompleteField } from '../../components/form';
 
 const JOBS = [
   'Ca sĩ',
@@ -31,56 +21,61 @@ const JOBS = [
   'Nhà sản xuất',
   'Nhạc công',
   'Nhà soạn nhạc',
-  'Nhà thơ',
-  'Nhà văn',
-  'Nhà báo',
   'Diễn viên',
-  'Người mẫu',
-  'Vũ công',
-  'Nghệ sĩ đường phố',
-  'Người dẫn chương trình',
-  'Nhà thiết kế',
-  'Họa sĩ',
-  'Nhiếp ảnh gia',
-  'Giáo viên',
-  'Học sinh',
-  'Sinh viên',
+  'Đạo diễn',
   'Khác',
 ];
 
+const schema = yup.object().shape({
+  name: yup.string().required('Vui lòng nhập tên nghệ sĩ'),
+  stageName: yup.string().required('Vui lòng nhập nghệ danh nghệ sĩ'),
+  bio: yup.string().required('Vui lòng nhập thông tin nghệ sĩ'),
+  status: yup.boolean().default(true),
+  roles: yup
+    .array(yup.string())
+    .min(1, 'Vui lòng chọn ít nhất một nghề nghiệp')
+    .required('Vui lòng chọn ít nhất một nghề nghiệp'),
+  image: yup.mixed().test('fileType', 'Vui lòng tải lên một tệp hình ảnh', (value) => {
+    if (!value) return false;
+    const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    return imageTypes.includes(value.type);
+  }),
+});
+
 // ----------------------------------------------------------------------
 export default function ArtistAddPage() {
-  const [status, setStatus] = useState(true);
-  const [name, setName] = useState('');
-  const [stageName, setStageName] = useState('');
-  const [bio, setBio] = useState('');
-  const [genres, setGenres] = useState([]);
-  const [roles, setRoles] = useState([]);
-  const [image, setImage] = useState('');
+  const {
+    control,
+    reset,
+    watch,
+    setValue,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
-  const handleFormSubmit = async () => {
+  const handleAddArtist = async (data) => {
+    console.log('object');
+    console.log(data);
     try {
-      const formData = createFormData();
+      const formData = createFormData(data);
       await addData(formData);
-      resetForm();
     } catch (error) {
       console.log(error);
     }
   };
 
-  const createFormData = () => {
+  const createFormData = (data) => {
     const formData = new FormData();
-    formData.append('name', name);
-    formData.append('stageName', stageName);
-    formData.append('bio', bio);
-    genres.forEach((genre, index) => {
-      formData.append(`genres[${index}]`, genre);
-    });
-    roles.forEach((role, index) => {
+    formData.append('name', data.name);
+    formData.append('stageName', data.stageName);
+    formData.append('bio', data.bio);
+    data.roles.forEach((role, index) => {
       formData.append(`roles[${index}]`, role);
     });
-    formData.append('status', status);
-    formData.append('image', image);
+    formData.append('status', data.status);
+    formData.append('image', data.image);
     return formData;
   };
 
@@ -90,6 +85,7 @@ export default function ArtistAddPage() {
         pending: 'Đang thêm nghệ sĩ...',
         success: 'Thêm nghệ sĩ thành công!',
       });
+      reset();
     } catch (error) {
       if (error.response && error.response.status === 400) {
         toast.error(error.response.data.error);
@@ -99,16 +95,6 @@ export default function ArtistAddPage() {
     }
   };
 
-  const resetForm = () => {
-    setName('');
-    setStageName('');
-    setBio('');
-    setGenres([]);
-    setRoles([]);
-    setStatus(true);
-    setImage('');
-  };
-
   return (
     <>
       <Helmet>
@@ -116,99 +102,85 @@ export default function ArtistAddPage() {
       </Helmet>
 
       <Container>
-        <ToastContainer />
         <Typography variant="h4" mb={5}>
           Thêm Nghệ Sĩ
         </Typography>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={4}>
-            <Card sx={{ p: 4, pt: 10 }}>
-              <AvatarPreview image={image} setImage={setImage} />
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={8}>
-            <Card sx={{ p: 3 }}>
-              <Stack spacing={3} mb={3} width="100%">
-                <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                  <TextField
-                    fullWidth
-                    label="Tên đầy đủ"
-                    variant="outlined"
-                    name="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Nghệ danh"
-                    variant="outlined"
-                    name="stageName"
-                    value={stageName}
-                    onChange={(e) => setStageName(e.target.value)}
-                  />
-                </Stack>
-
-                <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                  <Autocomplete
-                    id="genres"
-                    fullWidth
-                    multiple
-                    limitTags={2}
-                    autoHighlight
-                    options={GENGRES}
-                    onChange={(event, newValue) => {
-                      setGenres(newValue);
-                    }}
-                    value={genres}
-                    renderInput={(params) => <TextField {...params} label="Thể loại âm nhạc" variant="outlined" />}
-                  />
-                  <Autocomplete
-                    id="roles"
-                    fullWidth
-                    multiple
-                    limitTags={2}
-                    autoHighlight
-                    options={JOBS}
-                    onChange={(event, newValue) => {
-                      setRoles(newValue);
-                    }}
-                    value={roles}
-                    renderInput={(params) => <TextField {...params} label="Nghề nghiệp" variant="outlined" />}
-                  />
-                </Stack>
-
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  label="Mô tả"
-                  variant="outlined"
-                  name="bio"
-                  value={bio}
-                  onChange={(e) => setBio(e.target.value)}
+        <form onSubmit={handleSubmit(handleAddArtist)}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={4}>
+              <Card sx={{ p: 4, pt: 10 }}>
+                <AvatarPreview
+                  name="image"
+                  form={{ watch, setValue }}
+                  error={!!errors.image}
+                  helperText={errors.image?.message}
                 />
-              </Stack>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={status}
-                      onChange={(e) => setStatus(e.target.checked)}
-                      name="checked"
-                      color="primary"
+              </Card>
+            </Grid>
+            <Grid item xs={12} md={8}>
+              <Card sx={{ p: 3 }}>
+                <Stack spacing={3} mb={3} width="100%">
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                    <TextInputField
+                      name="name"
+                      inputType="text"
+                      defaultValue=""
+                      label="Nhập tên đầy đủ của nghệ sĩ"
+                      control={control}
+                      error={!!errors.name}
+                      helperText={errors.name?.message}
                     />
-                  }
-                  label="Trạng thái"
-                />
 
-                <Button onClick={handleFormSubmit} size="large" variant="contained" color="inherit">
-                  Thêm Nghệ Sĩ
-                </Button>
-              </Stack>
-            </Card>
+                    <TextInputField
+                      name="stageName"
+                      inputType="text"
+                      defaultValue=""
+                      label="Nhập nghệ danh của nghệ sĩ"
+                      control={control}
+                      error={!!errors.stageName}
+                      helperText={errors.stageName?.message}
+                    />
+                  </Stack>
+
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
+                    <MultiAutocompleteField
+                      name="roles"
+                      label="Chọn nghề nghiệp"
+                      limitTags={6}
+                      options={JOBS}
+                      control={control}
+                      defaultValue={[JOBS[0]]}
+                      error={!!errors.roles}
+                      helperText={errors.roles?.message}
+                      getOptionLabel={(option) => option}
+                      isOptionEqualToValue={(option, value) => option === value}
+                    />
+                  </Stack>
+
+                  <TextInputField
+                    rows={4}
+                    multiline
+                    name="bio"
+                    inputType="text"
+                    defaultValue=""
+                    label="Nhập mô tả"
+                    control={control}
+                    error={!!errors.bio}
+                    helperText={errors.bio?.message}
+                  />
+                </Stack>
+                <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={3}>
+                  <CheckboxField name="status" label="Trạng thái" control={control} />
+
+                  <Button type="submit" size="large" variant="contained" color="inherit">
+                    Thêm Nghệ Sĩ
+                  </Button>
+                </Stack>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
+        </form>
       </Container>
     </>
   );

@@ -71,6 +71,7 @@ export default function ThumbnailPreview({ name, form, error, helperText, imageU
     <>
       <StyledRoot {...getRootProps()} hasError={error} hasChanged={hasChanged}>
         {image && <StyledImage src={URL.createObjectURL(image)} alt="avatar" />}
+        {!image && imageUrl && <StyledImage src={imageUrl} alt="avatar" />}
         <input {...getInputProps()} />
         <IconFile width={200} height={150} />
         <Typography variant="h5" mt={2}>

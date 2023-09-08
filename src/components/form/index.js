@@ -1,4 +1,9 @@
 export { default as TextInputField } from './TextInputField';
 export { default as SelectField } from './SelectField';
+export { default as MultiSelectField } from './MultiSelectField';
 export { default as CheckboxField } from './CheckboxField';
 export { default as ThumbnailPreview } from './ThumbnailPreview';
+export { default as AvatarPreview } from './AvatarPreview';
+export { default as AutocompleteField } from './AutocompleteField';
+export { default as MultiAutocompleteField } from './MultiAutocompleteField';
+export { default as AudioFileInput } from './AudioFileInput';

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
 // @mui
 import { styled } from '@mui/material/styles';
-//
+
+// comp
 import Header from './header';
 import Nav from './nav';
 
@@ -40,10 +42,10 @@ export default function DashboardLayout() {
       <Header onOpenNav={() => setOpen(true)} />
 
       <Nav openNav={open} onCloseNav={() => setOpen(false)} />
-
       <Main>
         <Outlet />
       </Main>
+      <ToastContainer />
     </StyledRoot>
   );
 }

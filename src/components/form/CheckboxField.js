@@ -15,7 +15,9 @@ export default function CheckboxField({ name, control, label, defaultValue = tru
       name={name}
       control={control}
       defaultValue={defaultValue}
-      render={({ field }) => <FormControlLabel control={<Switch {...field} color="primary" />} label={label} />}
+      render={({ field }) => (
+        <FormControlLabel control={<Switch {...field} checked={field.value} color="primary" />} label={label} />
+      )}
     />
   );
 }

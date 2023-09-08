@@ -86,7 +86,6 @@ export default function UserAddPage() {
       </Helmet>
 
       <Container>
-        <ToastContainer />
         <Typography variant="h4" mb={5}>
           Thêm người dùng
         </Typography>

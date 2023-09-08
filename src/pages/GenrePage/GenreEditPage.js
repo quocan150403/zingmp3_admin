@@ -2,32 +2,43 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
 // @mui
-import {
-  Card,
-  Typography,
-  TextField,
-  FormControlLabel,
-  Switch,
-  Container,
-  Stack,
-  Button,
-  Grid,
-  FormGroup,
-} from '@mui/material';
+import { Card, Typography, Container, Stack, Button, Grid, FormGroup } from '@mui/material';
 // toast
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// form
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 
+// comp
+import { TextInputField, CheckboxField, ThumbnailPreview } from '../../components/form';
 import { genreApi } from '../../api';
-import { ThumbnailPreview } from '../../components/image-preview';
+
+const schema = yup.object().shape({
+  name: yup.string().required('Tên thể loại không được để trống'),
+  row: yup.number().required('Số thứ tự của hàng không được để trống'),
+  isHome: yup.boolean(),
+  status: yup.boolean(),
+  image: yup.mixed().test('fileType', 'Vui lòng tải lên một tệp hình ảnh', (value) => {
+    if (!value) return false;
+    const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    return imageTypes.includes(value.type);
+  }),
+});
 
 // ----------------------------------------------------------------------
 export default function GenreEditPage() {
-  const [status, setStatus] = useState(true);
-  const [isHome, setIsHome] = useState(false);
-  const [name, setName] = useState('');
-  const [row, setRow] = useState(0);
-  const [image, setImage] = useState('');
+  const {
+    control,
+    setValue,
+    watch,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
+
   const [oldImage, setOldImage] = useState('');
 
   const { id } = useParams();
@@ -37,12 +48,11 @@ export default function GenreEditPage() {
     const fetchData = async () => {
       try {
         const res = await genreApi.getById(id);
-        setName(res.name);
-        setRow(res.row);
-        setImage(res.imageUrl);
+        setValue('name', res.name);
+        setValue('row', res.row);
+        setValue('isHome', res.isHome);
+        setValue('status', res.status);
         setOldImage(res.imageUrl);
-        setStatus(res.status);
-        setIsHome(res.isHome);
       } catch (error) {
         console.log(error);
       }
@@ -50,24 +60,25 @@ export default function GenreEditPage() {
     fetchData();
   }, [id]);
 
-  const handleFormSubmit = async () => {
+  const onSubmit = async (data) => {
     try {
-      const formData = createFormData();
+      const formData = createFormData(data);
       await updateData(formData);
       navigate('/dashboard/genre');
+      toast.success('Cập nhật thể loại thành công!');
     } catch (error) {
       console.log(error);
     }
   };
 
-  const createFormData = () => {
+  const createFormData = (data) => {
     const formData = new FormData();
-    formData.append('name', name);
-    formData.append('row', row);
-    formData.append('image', image);
+    formData.append('name', data.name);
+    formData.append('row', data.row);
+    formData.append('image', data.image);
     formData.append('oldImage', oldImage);
-    formData.append('status', status);
-    formData.append('isHome', isHome);
+    formData.append('status', data.status);
+    formData.append('isHome', data.isHome);
     return formData;
   };
 
@@ -75,8 +86,6 @@ export default function GenreEditPage() {
     try {
       await toast.promise(genreApi.update(id, formData), {
         pending: 'Đang cập nhật thể loại...',
-        success: 'Cập nhật thể loại thành công!',
-        error: 'Cập nhật thể loại thất bại!',
       });
     } catch (error) {
       if (error.response && error.response.status === 400) {
@@ -94,74 +103,66 @@ export default function GenreEditPage() {
       </Helmet>
 
       <Container>
-        <ToastContainer />
         <Typography variant="h4" mb={5}>
           Cập nhật thể loại
         </Typography>
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={8}>
+              <Card sx={{ p: 3 }}>
+                <Stack spacing={3} mb={3} width="100%">
+                  <Stack direction="row" alignItems="center" spacing={2}>
+                    <TextInputField
+                      name="name"
+                      inputType="text"
+                      label="Tên thể loại"
+                      defaultValue=""
+                      control={control}
+                      error={!!errors.name}
+                      helperText={errors.name?.message}
+                    />
+                    <TextInputField
+                      name="row"
+                      inputType="number"
+                      defaultValue={0}
+                      label="Số hàng"
+                      control={control}
+                      error={!!errors.row}
+                      helperText={errors.row?.message}
+                    />
+                  </Stack>
 
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Card sx={{ p: 3 }}>
-              <Stack spacing={3} mb={3} width="100%">
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <TextField
-                    fullWidth
-                    label="Tên thể loại"
-                    variant="outlined"
-                    name="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Số hàng"
-                    variant="outlined"
-                    name="row"
-                    type="number"
-                    value={row}
-                    onChange={(e) => setRow(e.target.value)}
-                  />
+                  <Stack>
+                    <Typography variant="subtitle2" mb={2}>
+                      Hình ảnh
+                    </Typography>
+                    <ThumbnailPreview
+                      name="image"
+                      imageUrl={oldImage}
+                      form={{ watch, setValue }}
+                      error={!!errors.image}
+                      helperText={errors.image?.message}
+                    />
+                  </Stack>
+                  <FormGroup>
+                    <CheckboxField
+                      name="isHome"
+                      label="Hiển thị thể loại ở trang chủ"
+                      defaultValue={false}
+                      control={control}
+                    />
+                    <CheckboxField name="status" label="Trạng thái" control={control} />
+                  </FormGroup>
                 </Stack>
-
-                <Stack>
-                  <Typography variant="subtitle2" mb={2}>
-                    Hình ảnh
-                  </Typography>
-                  <ThumbnailPreview image={image} setImage={setImage} />
+                <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={3}>
+                  <Button type="submit" size="large" variant="contained" color="inherit">
+                    Lưu thể loại
+                  </Button>
                 </Stack>
-                <FormGroup>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={isHome}
-                        onChange={(e) => setIsHome(e.target.checked)}
-                        name="home"
-                        color="primary"
-                      />
-                    }
-                    label="Hiển thị ở trang chủ"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={status}
-                        onChange={(e) => setStatus(e.target.checked)}
-                        name="checked"
-                        color="primary"
-                      />
-                    }
-                    label="Trạng thái"
-                  />
-                </FormGroup>
-              </Stack>
-              <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={3}>
-                <Button onClick={handleFormSubmit} size="large" variant="contained" color="inherit">
-                  Thêm thể loại
-                </Button>
-              </Stack>
-            </Card>
+              </Card>
+            </Grid>
           </Grid>
-        </Grid>
+        </form>
       </Container>
     </>
   );
