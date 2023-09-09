@@ -36,12 +36,12 @@ const schema = yup.object().shape({
     .min(1, 'Vui lòng chọn ít nhất một tác giả')
     .required('Vui lòng chọn ít nhất một tác giả'),
   image: yup.mixed().test('fileType', 'Vui lòng tải lên một tệp hình ảnh', (value) => {
-    if (!value) return false;
+    if (!value) return true;
     const imageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     return imageTypes.includes(value.type);
   }),
   audio: yup.mixed().test('fileType', 'Vui lòng tải lên một tệp âm thanh', (value) => {
-    if (!value) return false;
+    if (!value) return true;
     const audioTypes = ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3'];
     return audioTypes.includes(value.type);
   }),
@@ -55,7 +55,8 @@ export default function GalleryEditPage() {
   const [artistList, setArtistList] = useState([]);
   const [albumList, setAlbumList] = useState([]);
   const [oldImage, setOldImage] = useState('');
-  const [oldAudio, setOldAudio] = useState(null);
+  const [oldAudio, setOldAudio] = useState('');
+
   const {
     control,
     watch,
@@ -65,19 +66,6 @@ export default function GalleryEditPage() {
   } = useForm({
     resolver: yupResolver(schema),
   });
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [artistData, albumData] = await Promise.all([artistApi.getQuery(), albumApi.getQuery()]);
-        setArtistList(artistData);
-        setAlbumList(albumData);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-    fetchData();
-  }, []);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -99,8 +87,22 @@ export default function GalleryEditPage() {
     fetchData();
   }, [id]);
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [artistData, albumData] = await Promise.all([artistApi.getQuery(), albumApi.getQuery()]);
+        setArtistList(artistData);
+        setAlbumList(albumData);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchData();
+  }, []);
+
   const handleFormSubmit = async (data) => {
     try {
+      console.log(data);
       const formData = createFormData(data);
       await updateData(formData);
       navigate('/dashboard/song');
@@ -125,6 +127,8 @@ export default function GalleryEditPage() {
     formData.append('duration', data.duration);
     formData.append('audio', data.audio);
     formData.append('status', data.status);
+    formData.append('oldAudio', oldAudio);
+    formData.append('oldImage', oldImage);
     return formData;
   };
 
@@ -207,6 +211,7 @@ export default function GalleryEditPage() {
                     getOptionLabel={(option) => option.name}
                     isOptionEqualToValue={(option, value) => option._id === value._id}
                     control={control}
+                    defaultValue={''}
                     error={!!errors.albumId}
                     helperText={errors.albumId?.message}
                   />

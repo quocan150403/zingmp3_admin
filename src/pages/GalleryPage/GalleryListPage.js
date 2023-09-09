@@ -18,7 +18,7 @@ import {
   TablePagination,
   Tooltip,
 } from '@mui/material';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 // Hooks
 import useTableManagement from '../../hooks/useTableManagement';
 // components
@@ -100,6 +100,27 @@ export default function GalleryListPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const currentFilteredData = applyFilterStatus(originalData, tab);
+    setGalleryList(currentFilteredData);
+  }, [originalData, tab]);
+
+  const applyFilterStatus = (data, newStatus) => {
+    if (newStatus === 1) {
+      return data.filter((item) => !item.deleted);
+    }
+    if (newStatus === 2) {
+      return data.filter((item) => item.status && !item.deleted);
+    }
+    if (newStatus === 3) {
+      return data.filter((item) => !item.status && !item.deleted);
+    }
+    if (newStatus === 4) {
+      return data.filter((item) => item.deleted);
+    }
+    return data;
+  };
+
   // Reset Api
   const resetData = async () => {
     try {
@@ -130,20 +151,6 @@ export default function GalleryListPage() {
   // Change tab
   const handleChangeStatus = (event, newValue) => {
     setTab(newValue);
-    handleFilterStatus(newValue);
-  };
-
-  // Change value by tab
-  const handleFilterStatus = (newStatus) => {
-    if (newStatus === 1) {
-      setGalleryList(originalData.filter((item) => !item.deleted));
-    } else if (newStatus === 2) {
-      setGalleryList(originalData.filter((item) => item.status && !item.deleted));
-    } else if (newStatus === 3) {
-      setGalleryList(originalData.filter((item) => !item.status && !item.deleted));
-    } else if (newStatus === 4) {
-      setGalleryList(originalData.filter((item) => item.deleted));
-    }
   };
 
   // Handle navigate edit page

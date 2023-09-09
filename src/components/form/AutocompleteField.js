@@ -27,6 +27,21 @@ export default function AutocompleteField({
   helperText,
   options,
 }) {
+  const customGetOptionLabel = (option) => {
+    if (option && getOptionLabel) {
+      return getOptionLabel(option);
+    }
+    return defaultValue || '';
+  };
+
+  const customIsOptionEqualToValue = (option, value) => {
+    // eslint-disable-next-line no-prototype-builtins
+    if (!value || !value.hasOwnProperty(name)) {
+      return false;
+    }
+    return option[name] === value[name];
+  };
+
   return (
     <Controller
       name={name}
@@ -38,11 +53,11 @@ export default function AutocompleteField({
           fullWidth
           id={name}
           options={options}
-          getOptionLabel={getOptionLabel}
-          isOptionEqualToValue={isOptionEqualToValue}
-          onChange={(_, selectedOptions) => field.onChange(selectedOptions)}
+          getOptionLabel={customGetOptionLabel}
+          isOptionEqualToValue={isOptionEqualToValue || customIsOptionEqualToValue}
           renderInput={(params) => <TextField {...params} label={label} error={!!error} helperText={helperText} />}
-          value={defaultValue}
+          onChange={(_, selectedOptions) => field.onChange(selectedOptions)}
+          defaultValue={defaultValue}
         />
       )}
     />

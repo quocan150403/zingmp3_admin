@@ -180,6 +180,7 @@ export default function SongAddPage() {
                     name="albumId"
                     options={albumList}
                     getOptionLabel={(option) => option.name}
+                    defaultValue={''}
                     isOptionEqualToValue={(option, value) => option._id === value._id}
                     control={control}
                     error={!!errors.albumId}

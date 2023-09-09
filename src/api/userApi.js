@@ -6,7 +6,7 @@ const userApi = {
   getQuery: (params) => axiosClient.get(url, { params }),
   getAll: () => axiosClient.get(`${url}/all`),
   getById: (id) => axiosClient.get(`${url}/${id}`),
-  getBySlug: (slug) => axiosClient.get(url, { slug }),
+  getBySlug: (slug) => axiosClient.get(`${url}/${slug}`),
   getTrash: () => axiosClient.get(`${url}/trash`),
   add: (data) =>
     axiosClient.post(`${url}/store`, data, {

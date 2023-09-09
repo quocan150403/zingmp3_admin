@@ -102,6 +102,27 @@ export default function SongListPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    const currentFilteredData = applyFilterStatus(originalData, tab);
+    setSongList(currentFilteredData);
+  }, [originalData, tab]);
+
+  const applyFilterStatus = (data, newStatus) => {
+    if (newStatus === 1) {
+      return data.filter((item) => !item.deleted);
+    }
+    if (newStatus === 2) {
+      return data.filter((item) => item.status && !item.deleted);
+    }
+    if (newStatus === 3) {
+      return data.filter((item) => !item.status && !item.deleted);
+    }
+    if (newStatus === 4) {
+      return data.filter((item) => item.deleted);
+    }
+    return data;
+  };
+
   // Reset Api
   const resetData = async () => {
     try {
@@ -132,20 +153,6 @@ export default function SongListPage() {
   // Change tab
   const handleChangeStatus = (event, newValue) => {
     setTab(newValue);
-    handleFilterStatus(newValue);
-  };
-
-  // Change value by tab
-  const handleFilterStatus = (newStatus) => {
-    if (newStatus === 1) {
-      setSongList(originalData.filter((item) => !item.deleted));
-    } else if (newStatus === 2) {
-      setSongList(originalData.filter((item) => item.status && !item.deleted));
-    } else if (newStatus === 3) {
-      setSongList(originalData.filter((item) => !item.status && !item.deleted));
-    } else if (newStatus === 4) {
-      setSongList(originalData.filter((item) => item.deleted));
-    }
   };
 
   // Handle navigate edit page
