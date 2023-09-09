@@ -19,7 +19,7 @@ import {
   Avatar,
   Tooltip,
 } from '@mui/material';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 // Hooks
 import useTableManagement from '../../hooks/useTableManagement';
 // components

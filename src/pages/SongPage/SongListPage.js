@@ -18,7 +18,7 @@ import {
   TablePagination,
   Tooltip,
 } from '@mui/material';
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 // Hooks
 import useTableManagement from '../../hooks/useTableManagement';
 // components
@@ -34,7 +34,7 @@ import { songApi } from '../../api';
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Thông tin bài hát' },
-  { id: 'create', label: 'Ngày tạo' },
+  { id: 'createdAt', label: 'Ngày tạo' },
   { id: 'artists', label: 'Ca sĩ trình bày' },
   { id: 'composer', label: 'Sáng tác' },
   { id: 'playCount', label: 'Lượt nghe' },

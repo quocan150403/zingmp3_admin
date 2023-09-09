@@ -18,7 +18,8 @@ import {
   TablePagination,
   Tooltip,
 } from '@mui/material';
-import { ToastContainer, toast } from 'react-toastify';
+import AddCircleOutlineOutlinedIcon from '@mui/icons-material/AddCircleOutlineOutlined';
+import { toast } from 'react-toastify';
 // Hooks
 import useTableManagement from '../../hooks/useTableManagement';
 // components
@@ -149,6 +150,11 @@ export default function AlbumListPage() {
   // Change tab
   const handleChangeStatus = (event, newValue) => {
     setTab(newValue);
+  };
+
+  // Handle navigate add song
+  const handleAddSongToAlbum = (albumId) => {
+    navigate(`/dashboard/song/add?albumId=${albumId}`);
   };
 
   // Handle navigate edit page
@@ -371,6 +377,11 @@ export default function AlbumListPage() {
                         </TableCell>
 
                         <TableCell align="right">
+                          <Tooltip title="Thêm bài hát vào album">
+                            <IconButton onClick={() => handleAddSongToAlbum(_id)} aria-label="add">
+                              <AddCircleOutlineOutlinedIcon />
+                            </IconButton>
+                          </Tooltip>
                           {tab === 4 ? (
                             <Stack direction="row" alignItems="center" justifyContent="center">
                               <Tooltip title="Khôi phục" placement="top">

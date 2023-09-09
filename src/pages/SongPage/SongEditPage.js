@@ -23,10 +23,9 @@ import { songApi, artistApi, albumApi } from '../../api';
 
 const schema = yup.object().shape({
   name: yup.string().required('Vui lòng nhập tên nghệ sĩ'),
-  lyric: yup.string().required('Vui lòng nhập lời bài hát'),
+  lyric: yup.string().default(''),
   albumId: yup.object().required('Vui lòng chọn album'),
   status: yup.boolean().default(true),
-  duration: yup.number().required('Vui lòng nhập thời lượng bài hát'),
   artists: yup
     .array(yup.object())
     .min(1, 'Vui lòng chọn ít nhất một nghệ sĩ')
@@ -102,7 +101,7 @@ export default function GalleryEditPage() {
 
   const handleFormSubmit = async (data) => {
     try {
-      console.log(data);
+      data.duration = await getAudioDuration(oldAudio);
       const formData = createFormData(data);
       await updateData(formData);
       navigate('/dashboard/song');
@@ -111,6 +110,15 @@ export default function GalleryEditPage() {
       console.log(error);
     }
   };
+
+  const getAudioDuration = async (file) =>
+    new Promise((resolve) => {
+      const audio = new Audio(file);
+      audio.addEventListener('loadedmetadata', () => {
+        const durationInSeconds = Math.floor(audio.duration);
+        resolve(durationInSeconds);
+      });
+    });
 
   const createFormData = (data) => {
     const formData = new FormData();
@@ -129,6 +137,8 @@ export default function GalleryEditPage() {
     formData.append('status', data.status);
     formData.append('oldAudio', oldAudio);
     formData.append('oldImage', oldImage);
+    formData.append('playCount', Math.floor(Math.random() * 10001));
+    formData.append('favorites', Math.floor(Math.random() * 10001));
     return formData;
   };
 
@@ -215,18 +225,6 @@ export default function GalleryEditPage() {
                     error={!!errors.albumId}
                     helperText={errors.albumId?.message}
                   />
-                  <TextInputField
-                    name="duration"
-                    inputType="number"
-                    defaultValue={0}
-                    label="Thời lượng"
-                    control={control}
-                    error={!!errors.duration}
-                    helperText={errors.duration?.message}
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">Phút</InputAdornment>,
-                    }}
-                  />
                 </Stack>
 
                 <Stack spacing={2} mb={3} direction="row" justifyContent="space-between" width="100%">
@@ -255,7 +253,7 @@ export default function GalleryEditPage() {
                 </Stack>
 
                 <TextInputField
-                  rows={7}
+                  rows={17}
                   multiline
                   name="lyric"
                   inputType="text"

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 // @mui
 import { Card, Typography, Container, Stack, Button, Grid } from '@mui/material';
 // toast
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 // form
 import { useForm } from 'react-hook-form';
@@ -43,7 +43,6 @@ export default function AlbumAddPage() {
   } = useForm({
     resolver: yupResolver(schema),
   });
-
   const [artistList, setArtistList] = useState([]);
   const [genreList, setGenreList] = useState([]);
 

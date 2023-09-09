@@ -1,8 +1,8 @@
+import { useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useEffect, useState } from 'react';
-import { MuiFileInput } from 'mui-file-input';
 // @mui
-import { Card, Typography, Container, Stack, Grid, InputAdornment, Button } from '@mui/material';
+import { Card, Typography, Container, Stack, Grid, Button } from '@mui/material';
 // toast
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -23,10 +23,9 @@ import { songApi, artistApi, albumApi } from '../../api';
 
 const schema = yup.object().shape({
   name: yup.string().required('Vui lòng nhập tên nghệ sĩ'),
-  lyric: yup.string().required('Vui lòng nhập lời bài hát'),
+  lyric: yup.string().default(''),
   albumId: yup.object().required('Vui lòng chọn album'),
   status: yup.boolean().default(true),
-  duration: yup.number().required('Vui lòng nhập thời lượng bài hát'),
   artists: yup
     .array(yup.object())
     .min(1, 'Vui lòng chọn ít nhất một nghệ sĩ')
@@ -51,6 +50,10 @@ const schema = yup.object().shape({
 export default function SongAddPage() {
   const [artistList, setArtistList] = useState([]);
   const [albumList, setAlbumList] = useState([]);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const albumId = searchParams.get('albumId');
+
   const {
     control,
     reset,
@@ -68,21 +71,35 @@ export default function SongAddPage() {
         const [artistData, albumData] = await Promise.all([artistApi.getQuery(), albumApi.getQuery()]);
         setArtistList(artistData);
         setAlbumList(albumData);
+        if (albumId) {
+          const currentAlbum = albumData.filter((item) => item._id === albumId);
+          setValue('albumId', currentAlbum);
+        }
       } catch (error) {
         console.log(error);
       }
     };
     fetchData();
-  }, []);
+  }, [albumId]);
 
   const handleFormSubmit = async (data) => {
     try {
+      data.duration = await getAudioDuration(data.audio);
       const formData = createFormData(data);
       await addData(formData);
     } catch (error) {
       console.log(error);
     }
   };
+
+  const getAudioDuration = async (file) =>
+    new Promise((resolve) => {
+      const audio = new Audio(URL.createObjectURL(file));
+      audio.addEventListener('loadedmetadata', () => {
+        const durationInSeconds = Math.floor(audio.duration);
+        resolve(durationInSeconds);
+      });
+    });
 
   const createFormData = (data) => {
     const formData = new FormData();
@@ -185,18 +202,6 @@ export default function SongAddPage() {
                     control={control}
                     error={!!errors.albumId}
                     helperText={errors.albumId?.message}
-                  />
-                  <TextInputField
-                    name="duration"
-                    inputType="number"
-                    defaultValue={0}
-                    label="Thời lượng"
-                    control={control}
-                    error={!!errors.duration}
-                    helperText={errors.duration?.message}
-                    InputProps={{
-                      endAdornment: <InputAdornment position="end">Phút</InputAdornment>,
-                    }}
                   />
                 </Stack>
 
