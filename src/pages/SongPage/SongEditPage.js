@@ -30,6 +30,10 @@ const schema = yup.object().shape({
     .array(yup.object())
     .min(1, 'Vui lòng chọn ít nhất một nghệ sĩ')
     .required('Vui lòng chọn ít nhất một nghệ sĩ'),
+  albums: yup
+    .array(yup.object())
+    .min(1, 'Vui lòng chọn ít nhất một một album')
+    .required('Vui lòng chọn ít nhất một một album'),
   composers: yup
     .array(yup.object())
     .min(1, 'Vui lòng chọn ít nhất một tác giả')
@@ -73,6 +77,7 @@ export default function GalleryEditPage() {
         setValue('name', res.name);
         setValue('albumId', res.albumId);
         setValue('artists', res.artists);
+        setValue('albums', res.albums);
         setValue('composers', res.composers);
         setValue('duration', res.duration);
         setValue('lyric', res.lyric);
@@ -128,6 +133,9 @@ export default function GalleryEditPage() {
     formData.append('image', data.image);
     formData.append('lyric', data.lyric);
     formData.append('albumId', data.albumId._id);
+    data.albums.forEach((album, index) => {
+      formData.append(`albums[${index}]`, album._id);
+    });
     data.artists.forEach((artist, index) => {
       formData.append(`artists[${index}]`, artist._id);
     });
@@ -224,6 +232,18 @@ export default function GalleryEditPage() {
                     defaultValue={''}
                     error={!!errors.albumId}
                     helperText={errors.albumId?.message}
+                  />
+
+                  <MultiAutocompleteField
+                    name="albums"
+                    label="Chọn albums"
+                    options={albumList}
+                    control={control}
+                    defaultValue={[]}
+                    error={!!errors.albums}
+                    helperText={errors.albums?.message}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) => option._id === value._id}
                   />
                 </Stack>
 
