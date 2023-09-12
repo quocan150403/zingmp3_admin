@@ -101,7 +101,9 @@ export default function GalleryEditPage() {
 
   const handleFormSubmit = async (data) => {
     try {
-      data.duration = await getAudioDuration(oldAudio);
+      if (data.audio) {
+        data.duration = await getAudioDuration(oldAudio);
+      }
       const formData = createFormData(data);
       await updateData(formData);
       navigate('/dashboard/song');
@@ -113,7 +115,7 @@ export default function GalleryEditPage() {
 
   const getAudioDuration = async (file) =>
     new Promise((resolve) => {
-      const audio = new Audio(file);
+      const audio = new Audio(URL.createObjectURL(file));
       audio.addEventListener('loadedmetadata', () => {
         const durationInSeconds = Math.floor(audio.duration);
         resolve(durationInSeconds);
@@ -137,8 +139,6 @@ export default function GalleryEditPage() {
     formData.append('status', data.status);
     formData.append('oldAudio', oldAudio);
     formData.append('oldImage', oldImage);
-    formData.append('playCount', Math.floor(Math.random() * 10001));
-    formData.append('favorites', Math.floor(Math.random() * 10001));
     return formData;
   };
 

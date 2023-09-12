@@ -366,7 +366,7 @@ export default function SongListPage() {
                                 {name}
                               </Typography>
                               <Typography variant="caption" noWrap>
-                                {albumId.name}
+                                {albumId?.name}
                               </Typography>
                             </Stack>
                           </Stack>

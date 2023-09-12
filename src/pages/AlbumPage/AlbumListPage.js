@@ -36,6 +36,7 @@ const TABLE_HEAD = [
   { id: 'name', label: 'name' },
   { id: 'create', label: 'Ngày tạo' },
   { id: 'genres', label: 'Thể loại' },
+  { id: 'favorites', label: 'Lượt thích' },
   { id: 'status', label: 'Trạng thái' },
   { id: '' },
 ];
@@ -329,7 +330,7 @@ export default function AlbumListPage() {
                 />
                 <TableBody>
                   {filteredList.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { _id, imageUrl, name, genres, artists, status, createdAt } = row;
+                    const { _id, imageUrl, name, genres, artists, favorites, status, createdAt } = row;
                     const selectedList = selected.indexOf(_id) !== -1;
 
                     return (
@@ -343,16 +344,16 @@ export default function AlbumListPage() {
                             <img
                               src={imageUrl}
                               alt="hình ảnh"
-                              height={40}
+                              height={60}
                               style={{
                                 borderRadius: '4px',
                               }}
                             />
                             <Stack direction="column" spacing={0}>
-                              <Typography variant="subtitle2" noWrap>
+                              <Typography variant="subtitle1" noWrap>
                                 {name}
                               </Typography>
-                              <Typography color="slategrey" variant="caption" noWrap>
+                              <Typography color="slategrey" variant="body2">
                                 {artists.map((item) => item.name).join(', ')}
                               </Typography>
                             </Stack>
@@ -370,7 +371,15 @@ export default function AlbumListPage() {
                           </Stack>
                         </TableCell>
 
-                        <TableCell align="left">{genres.map((item) => item.name).join(', ')}</TableCell>
+                        <TableCell align="left">
+                          {genres.map((item) => (
+                            <div key={item._id}>
+                              <Typography variant="body2">{item.name}</Typography>
+                            </div>
+                          ))}
+                        </TableCell>
+
+                        <TableCell align="left">{favorites}</TableCell>
 
                         <TableCell align="left">
                           <Label color={(status && 'success') || 'error'}>{(status && 'active') || 'inactive'}</Label>
